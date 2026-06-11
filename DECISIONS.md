@@ -18,13 +18,28 @@ Append-only log of choices made under design-lead authority. Newest at the botto
   shell.** Deal prices and countdowns must never be served stale; the app shell
   can be.
 - **Infra handoff (logged, not blocking):** `gh` CLI is absent and no GitHub
-  token is available, so the repo cannot be auto-created. SSH push works for
-  hbrady7. The Vercel CLI is not authenticated. The build proceeds locally with
-  the SSH remote wired (`git@github.com:hbrady7/last-call.git`); the owner
-  creates the GitHub repo + links Vercel to enable auto-deploy. Per SHIP RULES,
-  missing credentials degrade gracefully and never block the build.
+  token is available. The SSH remote `git@github.com:hbrady7/last-call.git`
+  already existed, so the first push succeeded — pushes work. The Vercel CLI is
+  not authenticated in this environment, so the owner links the repo to Vercel
+  once to enable auto-deploy on push. Per SHIP RULES, missing credentials
+  degrade gracefully and never block the build.
 
 ## Phase 1 — Data layer
+
+- **`id === slug`** for venues, and deal ids are `<slug>-<kind/suffix>`. Human
+  readable, stable across reseeds, and lets upserts be idempotent.
+- **`price: null` is a first-class value, never a fake number.** Reggies ("cheap
+  drinks, prices vary") and Beatrix's Monday half-price wine bottles carry
+  `null` prices. Steal Score treats null as "no discount data," so honesty costs
+  them score rather than inventing a price. This directly serves SHIP RULE #5.
+- **Sushi-san is two `happy_hour` rows** (Mon–Thu 16–18, Fri–Sun 15–17) because
+  the schema is one window per deal. The status machine picks whichever applies
+  today.
+- **The 6 pipeline stubs have `lat/lng = null` and are hidden** by the
+  `/api/venues` coords filter until geocoded — so zero-env serves exactly 12
+  mappable, deal-bearing venues, matching the Phase 1 DoD.
+- **`StaticRepo.replaceHappyHourDeals` writes back to seed.json** when the fs is
+  writable (local `pnpm scrape`) and degrades loudly on read-only serverless.
 
 ## Phase 2 — Map + sheet
 
