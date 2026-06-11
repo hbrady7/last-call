@@ -234,6 +234,38 @@ body {
   border-style: dashed;
   border-color: var(--color-brass);
 }
+/* supercluster bubbles */
+.lc-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-cream);
+  background: rgba(34, 25, 18, 0.92);
+  border: 1.5px solid rgba(196, 154, 108, 0.55);
+  box-shadow: 0 0 10px rgba(196, 154, 108, 0.25);
+}
+.lc-cluster span {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+}
+.lc-cluster em {
+  font-style: normal;
+  font-size: 9px;
+  color: var(--color-neon-amber);
+  line-height: 1;
+  margin-top: 1px;
+}
+.lc-cluster--live {
+  border-color: rgba(255, 69, 48, 0.7);
+  box-shadow: 0 0 12px rgba(255, 69, 48, 0.4);
+}
+.lc-cluster--live em {
+  color: var(--color-live-red);
+}
+
 .lc-hq {
   display: grid;
   place-items: center;

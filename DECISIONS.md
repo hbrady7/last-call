@@ -157,3 +157,20 @@ section logs the new work and judgment calls.
   dashed marker and are excluded from radius coverage stats.
 - **StaticRepo merges census.json onto seed.json** (seed wins by normalized-name
   or <60 m proximity); seed stays the only thing persisted back on extract.
+
+### v3.2/v3.3 — The Census + clustering
+- **`pnpm census` ran live:** Chicago Business Licenses (Socrata `uupf-x98q`,
+  verified resource ID) `within_circle(location, HQ, 3219)` for
+  Tavern/Late Hour/Incidental → 1011 unique licensed venues, deduped by
+  normalized DBA + address prefix; OSM Overpass added 249 bar/pub/nightclub
+  entries (103 websites enriched onto licenses, 18 OSM-only appended).
+- **Final census: ~1020 venues**, committed to `data/census.json` so zero-DB
+  mode has the whole city. Higher than the spec's 300–800 estimate because the
+  "Incidental Activity" license class is broad (hotels, delis) — kept, per spec,
+  since that's where many restaurant-bar happy hours live.
+- **Tavern/Late Hour → `bar`; Incidental → `restaurant-bar`.** Lifecycle starts
+  UNSCOUTED (or SCOUTED if OSM gave a website).
+- **supercluster** (radius 64, maxZoom 17) keeps 1029 markers smooth: cluster
+  bubbles show count + best inner score and glow red when any inner deal is
+  LIVE; tapping a cluster zooms to its expansion zoom. Recomputed on
+  move/zoomend from the in-view bbox.

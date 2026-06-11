@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { useEffect, useMemo, useState } from "react";
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Supercluster from "supercluster";
 import type { RankedVenue } from "@/lib/engine/rank";
 import { HQ, RADIUS_METERS } from "@/lib/hq";
 
@@ -72,6 +73,121 @@ const hqIcon = L.divIcon({
   iconAnchor: [15, 15],
 });
 
+function clusterIcon(count: number, maxScore: number, hasLive: boolean): L.DivIcon {
+  const size = count > 100 ? 52 : count > 25 ? 46 : 40;
+  const cls = hasLive ? "lc-cluster lc-cluster--live" : "lc-cluster";
+  const label = count >= 1000 ? `${Math.round(count / 100) / 10}k` : `${count}`;
+  return L.divIcon({
+    className: "",
+    html: `<div class="${cls}" style="width:${size}px;height:${size}px"><span>${label}</span>${maxScore > 0 ? `<em>${maxScore}</em>` : ""}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
+type PointProps = { slug: string; score: number; live: number };
+type ClusterProps = { maxScore: number; hasLive: number };
+
+/** Supercluster layer — keeps the map smooth at 1000+ venues. */
+function ClusterLayer({
+  ranked,
+  selectedSlug,
+  onSelect,
+}: {
+  ranked: RankedVenue[];
+  selectedSlug: string | null;
+  onSelect: (slug: string) => void;
+}) {
+  const map = useMap();
+  const [, setVersion] = useState(0);
+
+  const bySlug = useMemo(() => {
+    const m = new Map<string, RankedVenue>();
+    for (const r of ranked) m.set(r.venue.slug, r);
+    return m;
+  }, [ranked]);
+
+  const index = useMemo(() => {
+    const sc = new Supercluster<PointProps, ClusterProps>({
+      radius: 64,
+      maxZoom: 17,
+      map: (p) => ({ maxScore: p.score, hasLive: p.live }),
+      reduce: (acc, p) => {
+        acc.maxScore = Math.max(acc.maxScore, p.maxScore);
+        acc.hasLive = Math.max(acc.hasLive, p.hasLive);
+      },
+    });
+    sc.load(
+      ranked
+        .filter((r) => r.venue.lat != null && r.venue.lng != null)
+        .map((r) => ({
+          type: "Feature" as const,
+          properties: {
+            slug: r.venue.slug,
+            score: r.score,
+            live: r.status.state === "LIVE" ? 1 : 0,
+          },
+          geometry: {
+            type: "Point" as const,
+            coordinates: [r.venue.lng as number, r.venue.lat as number],
+          },
+        }))
+    );
+    return sc;
+  }, [ranked]);
+
+  useMapEvents({
+    moveend: () => setVersion((v) => v + 1),
+    zoomend: () => setVersion((v) => v + 1),
+  });
+  useEffect(() => setVersion((v) => v + 1), [index]);
+
+  const b = map.getBounds();
+  const bbox: [number, number, number, number] = [
+    b.getWest(),
+    b.getSouth(),
+    b.getEast(),
+    b.getNorth(),
+  ];
+  const zoom = Math.round(map.getZoom());
+  const clusters = index.getClusters(bbox, zoom);
+
+  return (
+    <>
+      {clusters.map((c) => {
+        const [lng, lat] = c.geometry.coordinates;
+        const props = c.properties as Supercluster.ClusterProperties & ClusterProps;
+        if (props.cluster) {
+          return (
+            <Marker
+              key={`cl-${props.cluster_id}`}
+              position={[lat, lng]}
+              icon={clusterIcon(props.point_count, props.maxScore, props.hasLive > 0)}
+              eventHandlers={{
+                click: () => {
+                  const z = Math.min(index.getClusterExpansionZoom(props.cluster_id), 18);
+                  map.flyTo([lat, lng], z, { duration: 0.5 });
+                },
+              }}
+            />
+          );
+        }
+        const slug = (c.properties as PointProps).slug;
+        const r = bySlug.get(slug);
+        if (!r) return null;
+        return (
+          <Marker
+            key={r.venue.id}
+            position={[lat, lng]}
+            icon={venueIcon(r, slug === selectedSlug)}
+            eventHandlers={{ click: () => onSelect(slug) }}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 export default function MapView({
   ranked,
   selectedSlug,
@@ -125,16 +241,11 @@ export default function MapView({
         {userLoc && (
           <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon} />
         )}
-        {ranked.map((r) =>
-          r.venue.lat != null && r.venue.lng != null ? (
-            <Marker
-              key={r.venue.id}
-              position={[r.venue.lat, r.venue.lng]}
-              icon={venueIcon(r, r.venue.slug === selectedSlug)}
-              eventHandlers={{ click: () => onSelect(r.venue.slug) }}
-            />
-          ) : null
-        )}
+        <ClusterLayer
+          ranked={ranked}
+          selectedSlug={selectedSlug}
+          onSelect={onSelect}
+        />
       </MapContainer>
     </div>
   );
