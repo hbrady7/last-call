@@ -215,3 +215,11 @@ section logs the new work and judgment calls.
   button (DB-only, with a clear note in static mode), per-venue refresh, and the
   step-tagged scrape_log. The product story — the city lighting up — is now
   legible to the operator.
+
+### v3 Awesome — #5 Time scrubber
+- Drag 11 AM → 2 AM and pick any weekday; the whole map relights because the
+  scrubbed `Date` simply replaces `now` everywhere (`now = scrub ?? tick`). Pure
+  status-machine, zero data fetch. After-midnight times fold onto the high end
+  of the slider so a Friday 1 AM preview works. "Back to live" clears it.
+- Carried over from v2 and still live: BEELINE MODE, Radar sweep, Tonight's
+  Play, Damage calculator — 5 Awesome features total, BEELINE first.

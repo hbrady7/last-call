@@ -24,7 +24,8 @@ import { DealDetail } from "./DealDetail";
 import { BeelineMode } from "./BeelineMode";
 import { RadarSweep } from "./RadarSweep";
 import { TonightsPlay } from "./TonightsPlay";
-import { Sparkles } from "lucide-react";
+import { TimeScrubber } from "./TimeScrubber";
+import { Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import("./MapView"), {
@@ -42,7 +43,10 @@ type Tab = "all" | "saved";
 
 export function RadarApp() {
   const { venues, loading, error } = useVenues();
-  const now = useTick();
+  const tick = useTick();
+  const [scrub, setScrub] = useState<Date | null>(null);
+  const [showScrubber, setShowScrubber] = useState(false);
+  const now = scrub ?? tick;
   const { request, geoStatus } = useGeolocation();
   const userLoc = useStore((s) => s.userLoc);
   const filters = useStore((s) => s.filters);
@@ -204,13 +208,37 @@ export function RadarApp() {
               Me
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowScrubber((v) => !v)}
+            aria-label="Time scrubber"
+            className={cn(
+              "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
+              scrub
+                ? "border-neon-amber bg-neon-amber/20 text-neon-amber"
+                : "border-brass/30 bg-surface/90 text-brass"
+            )}
+          >
+            <Clock className="h-4 w-4" />
+          </button>
         </div>
       </header>
 
       <GeoBanner />
 
+      {/* Time scrubber */}
+      <AnimatePresence>
+        {showScrubber && (
+          <TimeScrubber
+            value={scrub}
+            onChange={setScrub}
+            onClose={() => setShowScrubber(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* BEELINE floating action button */}
-      {userLoc && beelineTarget && !beeline && (
+      {userLoc && beelineTarget && !beeline && !showScrubber && (
         <button
           type="button"
           onClick={() => setBeeline(true)}
