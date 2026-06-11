@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { runScrape } from "@/lib/scraper/run";
+import { runScout } from "@/lib/scraper/scout";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 /**
- * Scheduled refresh of the 8 stalest venues. Guarded by CRON_SECRET (Bearer).
- * No secret configured → 503 with setup help (never silently runs unguarded).
+ * Scheduled pipeline tick: scout 15 UNSCOUTED venues, then extract 15 stalest.
+ * Guarded by CRON_SECRET (Bearer). No secret → 503 with setup help (never runs
+ * unguarded).
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -26,9 +28,19 @@ export async function GET(req: Request) {
   }
 
   try {
-    const reports = await runScrape({ limit: 8 });
-    const ok = reports.filter((r) => r.status === "ok").length;
-    return NextResponse.json({ ran: reports.length, updated: ok, reports });
+    const scouted = await runScout(15);
+    const extracted = await runScrape({ limit: 15 });
+    return NextResponse.json({
+      scouted: {
+        ran: scouted.length,
+        found: scouted.filter((r) => r.status === "ok").length,
+      },
+      extracted: {
+        ran: extracted.length,
+        updated: extracted.filter((r) => r.status === "ok").length,
+      },
+      reports: { scout: scouted, extract: extracted },
+    });
   } catch (e) {
     console.error("[cron/refresh] failed:", e);
     return NextResponse.json(

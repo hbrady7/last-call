@@ -201,3 +201,17 @@ section logs the new work and judgment calls.
   becoming spurious name filters. Composes with the chip filters and drives both
   list and map. Optional Haiku refinement is a future slot; the keyword path is
   the always-on floor (SHIP RULE #4).
+
+### v3.6 — Scout pipeline + coverage dashboard
+- **Scout step** (`pnpm scout`, cap 25, oldest UNSCOUTED first): one
+  `claude-haiku-4-5` call with the **web_search server tool** finds the official
+  site + specials URL, rejecting an aggregator blocklist (Yelp/Google/FB/
+  OpenTable/TimeOut/…). pause_turn is handled with a short continuation loop;
+  the JSON answer is Zod-validated. Success → lifecycle SCOUTED. No key → no-op.
+- **Cron** now scouts 15 then extracts 15 per tick; `vercel.json` schedule moved
+  to `0 14 * * 1,4` (Mon + Thu, 9 AM Chicago).
+- **/admin is a coverage dashboard**: scouted/extracted % bars, lifecycle +
+  deal counts over the 2-mile ring, a "run next batch (scout 10 + extract 10)"
+  button (DB-only, with a clear note in static mode), per-venue refresh, and the
+  step-tagged scrape_log. The product story — the city lighting up — is now
+  legible to the operator.
