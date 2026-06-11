@@ -192,3 +192,12 @@ section logs the new work and judgment calls.
 - **Optional Haiku hype intro** deferred to the templated intro for now (no new
   required env var; the AI version can slot into the same field when a key is
   present).
+
+### v3.5 — Perfect-match search
+- **Keyless client phrase parser** maps natural phrases to a filter object:
+  category words (martini→cocktail, draft→beer…), `$N`/`under N` → maxPrice,
+  now/open/tonight → liveNow, patio/dive/live-music → tags, leftover → name
+  match. Generous stopword list keeps fillers ("late", "open", "spot") from
+  becoming spurious name filters. Composes with the chip filters and drives both
+  list and map. Optional Haiku refinement is a future slot; the keyword path is
+  the always-on floor (SHIP RULE #4).

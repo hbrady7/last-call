@@ -11,8 +11,10 @@ import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { useStore } from "@/store/useStore";
 import { rankVenues } from "@/lib/engine/rank";
 import { applyFilters } from "@/lib/engine/filter";
+import { parseQuery, applySearch } from "@/lib/engine/search";
 import { planTonight } from "@/lib/engine/play";
 import { HQ } from "@/lib/hq";
+import { Search, X } from "lucide-react";
 import { FilterChips } from "./FilterChips";
 import { BudgetBar } from "./BudgetBar";
 import { DealRow } from "./DealRow";
@@ -57,6 +59,7 @@ export function RadarApp() {
   const [detailSlug, setDetailSlug] = useState<string | null>(null);
   const [sweep, setSweep] = useState(0);
   const [showPlay, setShowPlay] = useState(false);
+  const [query, setQuery] = useState("");
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Fire the radar sweep once the deals first land, then again on each re-locate.
@@ -86,12 +89,16 @@ export function RadarApp() {
     () => applyFilters(ranked, filters),
     [ranked, filters]
   );
+  const searched = useMemo(
+    () => applySearch(filtered, parseQuery(query)),
+    [filtered, query]
+  );
   const visible = useMemo(
     () =>
       tab === "saved"
-        ? filtered.filter((r) => favorites.includes(r.venue.id))
-        : filtered,
-    [filtered, tab, favorites]
+        ? searched.filter((r) => favorites.includes(r.venue.id))
+        : searched,
+    [searched, tab, favorites]
   );
   const liveCount = ranked.filter((r) => r.status.state === "LIVE").length;
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
@@ -133,7 +140,7 @@ export function RadarApp() {
   return (
     <main className="relative h-dvh w-full overflow-hidden">
       <MapView
-        ranked={filtered}
+        ranked={searched}
         selectedSlug={selectedSlug}
         onSelect={handleMarkerSelect}
         userLoc={userLoc}
@@ -218,6 +225,27 @@ export function RadarApp() {
       {/* Bottom sheet */}
       <BottomSheet snap={snap} onSnap={setSnap}>
         <div className="sticky top-0 z-10 -mx-3 mb-1 bg-ink/95 pb-2 pt-1 backdrop-blur">
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-2 rounded-coaster border border-brass/25 bg-surface px-3">
+              <Search className="h-4 w-4 shrink-0 text-brass" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="martinis under $8 · patio now · dive open late"
+                className="w-full bg-transparent py-2.5 text-[13px] text-cream placeholder:text-muted focus:outline-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="shrink-0 text-muted"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
           <div className="flex items-center justify-between px-4 pb-2">
             <p className="font-display text-base text-cream">
               {visible.length} {visible.length === 1 ? "deal" : "deals"}
