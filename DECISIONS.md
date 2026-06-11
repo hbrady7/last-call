@@ -174,3 +174,21 @@ section logs the new work and judgment calls.
   bubbles show count + best inner score and glow red when any inner deal is
   LIVE; tapping a cluster zooms to its expansion zoom. Recomputed on
   move/zoomend from the in-view bbox.
+
+### v3.4 — The Planner (/plan)
+- **Beam search (width 5)** over EXTRACTED venues: each leg's candidates are
+  reachable within the per-leg walk cap and live on arrival with ≥20 min left;
+  leg score = stealScore × windowFit − walk×1.5. all_day dives naturally fill
+  late legs (their window spans the night). Damage = 2 drinks/stop × cheapest
+  anchor (+ food when budget allows).
+- **Unit-tested to the DoD:** Wed 4:45 PM from HQ on seed data alone returns a
+  valid 3-stop run (Gilt's 15-min remainder correctly disqualifies it as opener;
+  the search picks a still-open HH → HH → all_day-dive chain). 22 tests green.
+- **Shuffle** re-runs excluding the current opener; **share** emits a text block
+  (native share → clipboard); **save** persists the plan locally (Zustand).
+- **Lock-a-stop was cut** (SHIP RULE #2): pinning a stop requires the beam to
+  plan around a fixed waypoint, which fought the clean leg-by-leg model for
+  >30 min. Shuffle + save cover the core need; logged rather than half-built.
+- **Optional Haiku hype intro** deferred to the templated intro for now (no new
+  required env var; the AI version can slot into the same field when a key is
+  present).

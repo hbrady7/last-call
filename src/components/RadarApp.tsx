@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { CalendarRange } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Crosshair, Loader2, Heart as HeartIcon, Navigation2 } from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
@@ -251,6 +253,15 @@ export function RadarApp() {
           </div>
           <FilterChips />
           <BudgetBar />
+          <div className="px-4 pt-2">
+            <Link
+              href="/plan"
+              className="flex w-full items-center justify-center gap-2 rounded-coaster border border-brass/30 bg-surface py-2.5 text-[13px] font-semibold text-cream active:scale-[0.99]"
+            >
+              <CalendarRange className="h-4 w-4 text-neon-amber" />
+              Plan a whole night →
+            </Link>
+          </div>
           {play && play.stops.length >= 2 && (
             <div className="px-4 pt-2">
               <button

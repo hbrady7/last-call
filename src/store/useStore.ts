@@ -21,12 +21,19 @@ export interface VisitLog {
   saved: number; // dollars dodged vs baseline
 }
 
+export interface SavedPlan {
+  id: string;
+  text: string;
+  createdAt: number;
+}
+
 interface Store {
   // persisted
   favorites: string[];
   filters: FilterKey[];
   budget: number | null;
   visits: VisitLog[];
+  savedPlans: SavedPlan[];
   // ephemeral
   selectedSlug: string | null;
   userLoc: { lat: number; lng: number } | null;
@@ -39,6 +46,8 @@ interface Store {
   toggleFilter: (key: FilterKey) => void;
   setBudget: (b: number | null) => void;
   logVisit: (v: VisitLog) => void;
+  savePlan: (p: SavedPlan) => void;
+  deletePlan: (id: string) => void;
   select: (slug: string | null) => void;
   setUserLoc: (loc: { lat: number; lng: number } | null) => void;
   setGeoStatus: (s: GeoStatus) => void;
@@ -53,6 +62,7 @@ export const useStore = create<Store>()(
       filters: [],
       budget: null,
       visits: [],
+      savedPlans: [],
       selectedSlug: null,
       userLoc: null,
       geoStatus: "idle",
@@ -74,6 +84,9 @@ export const useStore = create<Store>()(
         })),
       setBudget: (b) => set({ budget: b }),
       logVisit: (v) => set((s) => ({ visits: [...s.visits, v] })),
+      savePlan: (p) => set((s) => ({ savedPlans: [p, ...s.savedPlans].slice(0, 20) })),
+      deletePlan: (id) =>
+        set((s) => ({ savedPlans: s.savedPlans.filter((p) => p.id !== id) })),
       select: (slug) => set({ selectedSlug: slug }),
       setUserLoc: (loc) => set({ userLoc: loc }),
       setGeoStatus: (s) => set({ geoStatus: s }),
@@ -88,6 +101,7 @@ export const useStore = create<Store>()(
         filters: s.filters,
         budget: s.budget,
         visits: s.visits,
+        savedPlans: s.savedPlans,
         anchor: s.anchor,
       }),
     }
