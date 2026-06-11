@@ -43,7 +43,21 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ## Phase 2 — Map + sheet
 
-## Phase 3 — Engine
+## Phase 3 — Engine (built before Phase 2)
+
+- **Reordered: engine before map.** Phase 2's score markers and distance sort
+  literally depend on the status machine, Steal Score, and haversine. Building
+  the engine first (with tests green) means the map renders real data, not
+  placeholders. Same commits, dependency order.
+- **All time math in "minute of the week" space [0, 10080).** Deriving Chicago
+  wall-clock fields via `Intl.DateTimeFormat` (host-tz independent) then working
+  modulo a week makes midnight-crossing windows and the Sat→Sun / Sun→Mon wrap
+  fall out of `pos` vs `pos + 10080` checks — no fragile Date juggling. 18
+  Vitest cases cover it.
+- **`bestStatus` breaks LIVE ties by most time left**, so a venue's headline is
+  the deal you can still actually catch.
+- **One shared 30s heartbeat** (`useTick`) drives every countdown via a single
+  module-level interval + subscriber set, not N timers.
 
 ## Phase 4 — Detail + favorites
 
