@@ -43,6 +43,24 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ## Phase 2 — Map + sheet
 
+- **Bottom sheet = a 92dvh panel translated down**, not an animated-height box.
+  Three snap offsets (peek 18 / mid 55 / full 92) are positions of one panel;
+  the grab handle drives a `y` motion value via pointer events and snaps to the
+  nearest offset on release (with a velocity proxy). The body scrolls
+  independently because only the handle captures the pointer — no scroll-vs-drag
+  fight.
+- **Markers are `L.divIcon` score badges with CSS classes**, not Tailwind
+  utility strings — Tailwind v4 can't reliably scan classes inside a template
+  literal handed to Leaflet, so marker styles live in `globals.css`
+  (`.lc-pin--live/soon/dim`).
+- **Selection is global (Zustand), shared by map + list.** Tapping a marker or a
+  row sets `selectedSlug`; the map flies to it and the row scrolls into view —
+  one source of truth keeps them in sync.
+- **Filters affect both map and list** (same filtered array feeds both) so the
+  map never shows pins the list is hiding.
+- **First-interaction geolocation** via a one-shot `pointerdown` listener; denial
+  centers on the Loop and shows a dismissible banner. Never requested on load.
+
 ## Phase 3 — Engine (built before Phase 2)
 
 - **Reordered: engine before map.** Phase 2's score markers and distance sort

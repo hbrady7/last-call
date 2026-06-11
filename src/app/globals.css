@@ -167,6 +167,75 @@ body {
   color: var(--color-brass) !important;
 }
 
+/* ───────────────────────── map markers (L.divIcon) ───────────────────────── */
+.lc-pin {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.lc-pin--live {
+  color: #ff4530;
+  background: rgba(34, 25, 18, 0.95);
+  border-color: rgba(255, 69, 48, 0.8);
+  box-shadow:
+    0 0 8px rgba(255, 69, 48, 0.6),
+    0 0 18px rgba(255, 69, 48, 0.35);
+  animation: marker-pulse 2.4s ease-out infinite;
+}
+.lc-pin--soon {
+  color: #ffb52e;
+  background: rgba(34, 25, 18, 0.95);
+  border-color: rgba(255, 181, 46, 0.75);
+  box-shadow: 0 0 6px rgba(255, 181, 46, 0.4);
+}
+.lc-pin--dim {
+  color: #c49a6c;
+  background: rgba(34, 25, 18, 0.85);
+  border-color: rgba(196, 154, 108, 0.4);
+}
+.lc-pin--selected {
+  transform: scale(1.22);
+  outline: 2px solid var(--color-cream);
+  outline-offset: 2px;
+}
+.lc-user {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #4ea3ff;
+  border: 3px solid var(--color-cream);
+  box-shadow: 0 0 0 4px rgba(78, 163, 255, 0.3);
+}
+
+/* radar sweep arm */
+.radar-arm {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50vmax;
+  height: 50vmax;
+  transform-origin: top left;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 181, 46, 0.28),
+    rgba(255, 181, 46, 0) 35%
+  );
+  border-radius: 0 0 100% 0;
+  pointer-events: none;
+  animation: radar-sweep 1.6s linear;
+}
+
 /* hide scrollbars inside the sheet but keep scroll */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

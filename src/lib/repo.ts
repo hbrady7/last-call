@@ -34,6 +34,24 @@ function stalest(a: VenueWithDeals): number {
   return Math.min(...a.deals.map((d) => new Date(d.lastVerified).getTime()));
 }
 
+/** Drop the attached deals, leaving a bare Venue. */
+function stripDeals(v: VenueWithDeals): Venue {
+  const bare: Venue = {
+    id: v.id,
+    slug: v.slug,
+    name: v.name,
+    address: v.address,
+    neighborhood: v.neighborhood,
+    lat: v.lat,
+    lng: v.lng,
+    website: v.website,
+    dealSourceUrl: v.dealSourceUrl,
+    tags: v.tags,
+    cashOnly: v.cashOnly,
+  };
+  return bare;
+}
+
 // ─────────────────────────── StaticRepo (seed.json) ───────────────────────────
 class StaticRepo implements DealsRepo {
   private venues: Venue[];
@@ -63,7 +81,7 @@ class StaticRepo implements DealsRepo {
     return withDeals
       .sort((a, b) => stalest(a) - stalest(b))
       .slice(0, limit)
-      .map(({ deals: _deals, ...v }) => v);
+      .map(stripDeals);
   }
 
   async replaceHappyHourDeals(venueId: string, deals: Deal[]): Promise<void> {
@@ -163,7 +181,7 @@ class DrizzleRepo implements DealsRepo {
       .filter((v) => v.dealSourceUrl)
       .sort((a, b) => stalest(a) - stalest(b))
       .slice(0, limit)
-      .map(({ deals: _deals, ...v }) => v);
+      .map(stripDeals);
   }
 
   async replaceHappyHourDeals(venueId: string, deals: Deal[]): Promise<void> {
