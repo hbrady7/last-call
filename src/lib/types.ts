@@ -37,6 +37,17 @@ export const DealSchema = z.object({
 });
 export type Deal = z.infer<typeof DealSchema>;
 
+export const VenueClass = z.enum(["bar", "restaurant-bar"]);
+export type VenueClass = z.infer<typeof VenueClass>;
+
+export const Lifecycle = z.enum([
+  "UNSCOUTED", // census only — no site/HH URL yet
+  "SCOUTED", // official site / HH URL found
+  "EXTRACTED", // deals found, confidence-stamped
+  "NO_DEAL_FOUND", // checked, nothing posted
+]);
+export type Lifecycle = z.infer<typeof Lifecycle>;
+
 export const VenueSchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -45,10 +56,14 @@ export const VenueSchema = z.object({
   neighborhood: z.string().nullable(),
   lat: z.number().nullable(),
   lng: z.number().nullable(),
+  class: VenueClass.default("bar"),
+  lifecycle: Lifecycle.default("UNSCOUTED"),
   website: z.string().nullable(),
   dealSourceUrl: z.string().nullable(),
   tags: z.array(z.string()),
   cashOnly: z.boolean(),
+  /** Precomputed haversine meters from HQ (null if coords unknown). */
+  distanceFromHqM: z.number().nullable().default(null),
 });
 export type Venue = z.infer<typeof VenueSchema>;
 

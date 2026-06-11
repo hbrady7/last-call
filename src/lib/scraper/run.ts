@@ -52,7 +52,17 @@ export async function runScrape(opts: {
 
     const outcome = await extractDeals(venue.name, fetched.text);
     if (outcome.status !== "ok" || !outcome.extraction) {
-      await repo.logScrape({ venueId: venue.id, status: outcome.status, note: outcome.note });
+      // A clean "nothing posted" advances the venue to NO_DEAL_FOUND; transient
+      // fetch/key errors leave the lifecycle untouched to retry later.
+      if (outcome.status === "no_deal_found") {
+        await repo.setScoutResult(venue.id, { lifecycle: "NO_DEAL_FOUND" });
+      }
+      await repo.logScrape({
+        venueId: venue.id,
+        step: "extract",
+        status: outcome.status,
+        note: outcome.note,
+      });
       reports.push({
         venueId: venue.id,
         venueName: venue.name,
@@ -79,8 +89,10 @@ export async function runScrape(opts: {
     }));
 
     await repo.replaceHappyHourDeals(venue.id, deals);
+    await repo.setScoutResult(venue.id, { lifecycle: "EXTRACTED" });
     await repo.logScrape({
       venueId: venue.id,
+      step: "extract",
       status: "ok",
       note: `${deals.length} deals @ conf ${outcome.extraction.confidence}`,
     });

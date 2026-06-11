@@ -11,7 +11,10 @@
       "website": null,
       "dealSourceUrl": null,
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 644
     },
     {
       "id": "sushi-san",
@@ -24,7 +27,10 @@
       "website": null,
       "dealSourceUrl": "https://sushisanrestaurant.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 388
     },
     {
       "id": "ema",
@@ -37,7 +43,10 @@
       "website": null,
       "dealSourceUrl": null,
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 374
     },
     {
       "id": "tanta",
@@ -50,7 +59,10 @@
       "website": null,
       "dealSourceUrl": null,
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 504
     },
     {
       "id": "beatrix-river-north",
@@ -63,7 +75,10 @@
       "website": null,
       "dealSourceUrl": null,
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 414
     },
     {
       "id": "bar-cargo",
@@ -76,7 +91,10 @@
       "website": null,
       "dealSourceUrl": null,
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 685
     },
     {
       "id": "rossis",
@@ -88,8 +106,13 @@
       "lng": -87.6281508,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive"],
-      "cashOnly": true
+      "tags": [
+        "dive"
+      ],
+      "cashOnly": true,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 128
     },
     {
       "id": "richards-bar",
@@ -101,8 +124,13 @@
       "lng": -87.6469631,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive"],
-      "cashOnly": true
+      "tags": [
+        "dive"
+      ],
+      "cashOnly": true,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 1624
     },
     {
       "id": "kaseys-tavern",
@@ -114,8 +142,13 @@
       "lng": -87.6289909,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive"],
-      "cashOnly": false
+      "tags": [
+        "dive"
+      ],
+      "cashOnly": false,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 1711
     },
     {
       "id": "skylark",
@@ -127,8 +160,14 @@
       "lng": -87.6463889,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive"],
-      "cashOnly": true
+      "tags": [
+        "dive",
+        "worth-the-trip"
+      ],
+      "cashOnly": true,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 4283
     },
     {
       "id": "reggies",
@@ -140,8 +179,15 @@
       "lng": -87.6268523,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive", "live-music"],
-      "cashOnly": false
+      "tags": [
+        "dive",
+        "live-music",
+        "worth-the-trip"
+      ],
+      "cashOnly": false,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 3864
     },
     {
       "id": "carols-pub",
@@ -153,8 +199,15 @@
       "lng": -87.6669024,
       "website": null,
       "dealSourceUrl": null,
-      "tags": ["dive", "live-music"],
-      "cashOnly": false
+      "tags": [
+        "dive",
+        "live-music",
+        "worth-the-trip"
+      ],
+      "cashOnly": false,
+      "class": "bar",
+      "lifecycle": "EXTRACTED",
+      "distanceFromHqM": 9289
     },
     {
       "id": "sunda-new-asian",
@@ -167,7 +220,10 @@
       "website": "https://sundanewasian.com",
       "dealSourceUrl": "https://sundanewasian.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     },
     {
       "id": "the-smith",
@@ -180,7 +236,10 @@
       "website": "https://thesmithrestaurant.com",
       "dealSourceUrl": "https://thesmithrestaurant.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     },
     {
       "id": "hampton-social-river-north",
@@ -193,7 +252,10 @@
       "website": "https://thehamptonsocial.com",
       "dealSourceUrl": "https://thehamptonsocial.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     },
     {
       "id": "moes-cantina-river-north",
@@ -206,7 +268,10 @@
       "website": "https://moescantina.com",
       "dealSourceUrl": "https://moescantina.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     },
     {
       "id": "fado-irish-pub",
@@ -219,7 +284,10 @@
       "website": "https://fadochicago.com",
       "dealSourceUrl": "https://fadochicago.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     },
     {
       "id": "gyu-kaku-river-north",
@@ -232,7 +300,10 @@
       "website": "https://gyu-kaku.com",
       "dealSourceUrl": "https://gyu-kaku.com",
       "tags": [],
-      "cashOnly": false
+      "cashOnly": false,
+      "class": "restaurant-bar",
+      "lifecycle": "SCOUTED",
+      "distanceFromHqM": null
     }
   ],
   "deals": [
@@ -240,224 +311,474 @@
       "id": "gilt-bar-hh",
       "venueId": "gilt-bar",
       "kind": "happy_hour",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": "16:00",
       "endTime": "17:00",
       "items": [
-        { "label": "Beer", "price": 6, "category": "beer" },
-        { "label": "Wine", "price": 6, "category": "wine" },
-        { "label": "Teeny martini", "price": 7, "category": "cocktail" },
-        { "label": "Highball", "price": 7, "category": "cocktail" },
-        { "label": "Old fashioned", "price": 8, "category": "cocktail" },
-        { "label": "Meatball sliders", "price": 7, "category": "food" }
+        {
+          "label": "Beer",
+          "price": 6,
+          "category": "beer"
+        },
+        {
+          "label": "Wine",
+          "price": 6,
+          "category": "wine"
+        },
+        {
+          "label": "Teeny martini",
+          "price": 7,
+          "category": "cocktail"
+        },
+        {
+          "label": "Highball",
+          "price": 7,
+          "category": "cocktail"
+        },
+        {
+          "label": "Old fashioned",
+          "price": 8,
+          "category": "cocktail"
+        },
+        {
+          "label": "Meatball sliders",
+          "price": 7,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "sushi-san-hh-weekday",
       "venueId": "sushi-san",
       "kind": "happy_hour",
-      "days": [1, 2, 3, 4],
+      "days": [
+        1,
+        2,
+        3,
+        4
+      ],
       "startTime": "16:00",
       "endTime": "18:00",
       "items": [
-        { "label": "Asahi cold draft", "price": 5, "category": "beer" },
-        { "label": "Sake", "price": 6, "category": "wine" },
-        { "label": "Wine", "price": 6, "category": "wine" },
-        { "label": "Cocktails", "price": 10, "category": "cocktail" },
-        { "label": "Snacks", "price": 6, "category": "food" }
+        {
+          "label": "Asahi cold draft",
+          "price": 5,
+          "category": "beer"
+        },
+        {
+          "label": "Sake",
+          "price": 6,
+          "category": "wine"
+        },
+        {
+          "label": "Wine",
+          "price": 6,
+          "category": "wine"
+        },
+        {
+          "label": "Cocktails",
+          "price": 10,
+          "category": "cocktail"
+        },
+        {
+          "label": "Snacks",
+          "price": 6,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": "https://sushisanrestaurant.com",
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "sushi-san-hh-weekend",
       "venueId": "sushi-san",
       "kind": "happy_hour",
-      "days": [5, 6, 0],
+      "days": [
+        5,
+        6,
+        0
+      ],
       "startTime": "15:00",
       "endTime": "17:00",
       "items": [
-        { "label": "Asahi cold draft", "price": 5, "category": "beer" },
-        { "label": "Sake", "price": 6, "category": "wine" },
-        { "label": "Wine", "price": 6, "category": "wine" },
-        { "label": "Cocktails", "price": 10, "category": "cocktail" },
-        { "label": "Snacks", "price": 6, "category": "food" }
+        {
+          "label": "Asahi cold draft",
+          "price": 5,
+          "category": "beer"
+        },
+        {
+          "label": "Sake",
+          "price": 6,
+          "category": "wine"
+        },
+        {
+          "label": "Wine",
+          "price": 6,
+          "category": "wine"
+        },
+        {
+          "label": "Cocktails",
+          "price": 10,
+          "category": "cocktail"
+        },
+        {
+          "label": "Snacks",
+          "price": 6,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": "https://sushisanrestaurant.com",
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "ema-hh",
       "venueId": "ema",
       "kind": "happy_hour",
-      "days": [1, 2, 3, 4],
+      "days": [
+        1,
+        2,
+        3,
+        4
+      ],
       "startTime": "16:00",
       "endTime": "18:00",
       "items": [
-        { "label": "Craft beer", "price": 6, "category": "beer" },
-        { "label": "Wine", "price": 8, "category": "wine" },
-        { "label": "Mezze", "price": 7, "category": "food" }
+        {
+          "label": "Craft beer",
+          "price": 6,
+          "category": "beer"
+        },
+        {
+          "label": "Wine",
+          "price": 8,
+          "category": "wine"
+        },
+        {
+          "label": "Mezze",
+          "price": 7,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "tanta-hh",
       "venueId": "tanta",
       "kind": "happy_hour",
-      "days": [1, 2, 3, 4, 5],
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "startTime": "17:00",
       "endTime": "19:00",
       "items": [
-        { "label": "Beer", "price": 6, "category": "beer" },
-        { "label": "Cocktails", "price": 10, "category": "cocktail" },
-        { "label": "Snacks", "price": 7, "category": "food" }
+        {
+          "label": "Beer",
+          "price": 6,
+          "category": "beer"
+        },
+        {
+          "label": "Cocktails",
+          "price": 10,
+          "category": "cocktail"
+        },
+        {
+          "label": "Snacks",
+          "price": 7,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "beatrix-river-north-hh",
       "venueId": "beatrix-river-north",
       "kind": "happy_hour",
-      "days": [1, 2, 3, 4, 5],
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "startTime": "15:00",
       "endTime": "18:00",
       "items": [
-        { "label": "Local beer", "price": 6, "category": "beer" },
-        { "label": "Wine", "price": 7, "category": "wine" },
-        { "label": "Cocktails", "price": 8, "category": "cocktail" },
-        { "label": "Snacks", "price": 9, "category": "food" },
-        { "label": "Burger", "price": 12, "category": "food" }
+        {
+          "label": "Local beer",
+          "price": 6,
+          "category": "beer"
+        },
+        {
+          "label": "Wine",
+          "price": 7,
+          "category": "wine"
+        },
+        {
+          "label": "Cocktails",
+          "price": 8,
+          "category": "cocktail"
+        },
+        {
+          "label": "Snacks",
+          "price": 9,
+          "category": "food"
+        },
+        {
+          "label": "Burger",
+          "price": 12,
+          "category": "food"
+        }
       ],
       "finePrint": null,
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "beatrix-river-north-mon-wine",
       "venueId": "beatrix-river-north",
       "kind": "all_day",
-      "days": [1],
+      "days": [
+        1
+      ],
       "startTime": null,
       "endTime": null,
       "items": [
-        { "label": "Half-price wine bottles", "price": null, "category": "wine" }
+        {
+          "label": "Half-price wine bottles",
+          "price": null,
+          "category": "wine"
+        }
       ],
       "finePrint": "Half-price wine bottles all day Monday.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "bar-cargo-hh",
       "venueId": "bar-cargo",
       "kind": "happy_hour",
-      "days": [3, 4, 5],
+      "days": [
+        3,
+        4,
+        5
+      ],
       "startTime": "16:00",
       "endTime": "18:00",
       "items": [
-        { "label": "Well drinks", "price": 5, "category": "cocktail" },
-        { "label": "House wine", "price": 5, "category": "wine" },
-        { "label": "Domestic beer", "price": 5, "category": "beer" }
+        {
+          "label": "Well drinks",
+          "price": 5,
+          "category": "cocktail"
+        },
+        {
+          "label": "House wine",
+          "price": 5,
+          "category": "wine"
+        },
+        {
+          "label": "Domestic beer",
+          "price": 5,
+          "category": "beer"
+        }
       ],
       "finePrint": null,
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "rossis-all-day",
       "venueId": "rossis",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
       "items": [
-        { "label": "Chicago Handshake (Malört + Old Style)", "price": 6, "category": "shot" },
-        { "label": "Beer bottles", "price": 5, "category": "beer" }
+        {
+          "label": "Chicago Handshake (Malört + Old Style)",
+          "price": 6,
+          "category": "shot"
+        },
+        {
+          "label": "Beer bottles",
+          "price": 5,
+          "category": "beer"
+        }
       ],
       "finePrint": "Cash only.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "richards-bar-all-day",
       "venueId": "richards-bar",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
-      "items": [{ "label": "Beer", "price": 4, "category": "beer" }],
+      "items": [
+        {
+          "label": "Beer",
+          "price": 4,
+          "category": "beer"
+        }
+      ],
       "finePrint": "Cash only.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "kaseys-tavern-all-day",
       "venueId": "kaseys-tavern",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
-      "items": [{ "label": "Pints", "price": 6, "category": "beer" }],
+      "items": [
+        {
+          "label": "Pints",
+          "price": 6,
+          "category": "beer"
+        }
+      ],
       "finePrint": "Slinging pints since 1899.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "skylark-all-day",
       "venueId": "skylark",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
-      "items": [{ "label": "Tallboys", "price": 4, "category": "beer" }],
+      "items": [
+        {
+          "label": "Tallboys",
+          "price": 4,
+          "category": "beer"
+        }
+      ],
       "finePrint": "Cash only (ATM inside). Known for generous shot pours.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "reggies-all-day",
       "venueId": "reggies",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
-      "items": [{ "label": "Cheap drinks", "price": null, "category": "beer" }],
+      "items": [
+        {
+          "label": "Cheap drinks",
+          "price": null,
+          "category": "beer"
+        }
+      ],
       "finePrint": "Cheap drinks and live shows — prices vary by night.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     },
     {
       "id": "carols-pub-all-day",
       "venueId": "carols-pub",
       "kind": "all_day",
-      "days": [0, 1, 2, 3, 4, 5, 6],
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "startTime": null,
       "endTime": null,
-      "items": [{ "label": "Domestic beer", "price": 4, "category": "beer" }],
+      "items": [
+        {
+          "label": "Domestic beer",
+          "price": 4,
+          "category": "beer"
+        }
+      ],
       "finePrint": "Live country music, no cover most nights.",
       "sourceUrl": null,
-      "confidence": 1.0,
+      "confidence": 1,
       "lastVerified": "2026-06-10T12:00:00.000Z"
     }
   ]

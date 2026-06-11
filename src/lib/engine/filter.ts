@@ -13,6 +13,7 @@ const PREDICATES: Record<FilterKey, (r: RankedVenue) => boolean> = {
   dives: (r) => r.venue.tags.includes("dive"),
   walk15: (r) => r.walkMin != null && r.walkMin <= 15,
   patio: (r) => r.venue.tags.includes("patio"),
+  hasDeals: (r) => r.venue.lifecycle === "EXTRACTED",
 };
 
 /** AND across every active filter chip. */

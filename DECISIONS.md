@@ -135,3 +135,25 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ### 4. Damage calculator
 - Set a budget ($10/$20/$40, persisted); every row computes `floor(budget / cheapest priced drink)` and shows "$20 buys 5 Tallboys" — pure math, zero AI.
+
+## v3 — FULL COVERAGE (HQ anchor, census, lifecycle, planner, scout)
+
+The owner shipped a v3 spec mid-build. Most of v1/v2 carried straight over; this
+section logs the new work and judgment calls.
+
+### v3.1 — HQ anchor + venue lifecycle
+- **HQ coordinate corrected via Nominatim.** Spec estimate (41.8881, -87.6262)
+  was ~130 m off the AMA Plaza building; Nominatim returns 41.8886592,
+  -87.627596 — used that, logged here.
+- **`distanceFromHqM` precomputed** into seed.json (and by the census script) so
+  sort/coverage math never recomputes haversine per render.
+- **Venue lifecycle (UNSCOUTED→SCOUTED→EXTRACTED / NO_DEAL_FOUND)** drives both
+  the marker visuals (ember → amber dot → full neon score / dim ring) and the
+  list rows ("intel pending" / "no posted specials"). The radar visibly lights
+  up as the pipeline works — that's the product story, rendered honestly.
+- **Anchor toggle (Office/GPS)** re-anchors every distance and the ranking
+  instantly; default Office means GPS denial never degrades the core (SHIP RULE
+  #7). `worth-the-trip` seed venues (>2 mi: Skylark, Reggies, Carol's) get a
+  dashed marker and are excluded from radius coverage stats.
+- **StaticRepo merges census.json onto seed.json** (seed wins by normalized-name
+  or <60 m proximity); seed stays the only thing persisted back on extract.

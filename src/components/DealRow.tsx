@@ -34,7 +34,18 @@ export function DealRow({
 }) {
   const { venue, status, score, meters, headline, stale } = ranked;
   const budget = useStore((s) => s.budget);
-  const buys = budget != null ? whatBudgetBuys(ranked, budget) : null;
+  const extracted = venue.lifecycle === "EXTRACTED";
+  const buys = extracted && budget != null ? whatBudgetBuys(ranked, budget) : null;
+
+  const intel =
+    venue.lifecycle === "UNSCOUTED"
+      ? "intel pending"
+      : venue.lifecycle === "SCOUTED"
+        ? "checking for specials…"
+        : venue.lifecycle === "NO_DEAL_FOUND"
+          ? "no posted specials — still cheap? tell the pipeline"
+          : null;
+
   return (
     <button
       type="button"
@@ -46,11 +57,20 @@ export function DealRow({
           : "border-transparent bg-surface hover:bg-surface-2"
       )}
     >
-      <ScoreBadge score={score} state={status.state} />
+      {extracted ? (
+        <ScoreBadge score={score} state={status.state} />
+      ) : (
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-brass/25 bg-surface-2 text-[9px] uppercase tracking-wide text-muted">
+          {venue.lifecycle === "NO_DEAL_FOUND" ? "—" : "?"}
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate font-display text-[15px] text-cream">
             {venue.name}
+          </span>
+          <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted">
+            {venue.class === "bar" ? "Bar" : "Resto-bar"}
           </span>
           {venue.cashOnly && (
             <span className="shrink-0 rounded bg-brass/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brass">
@@ -58,14 +78,25 @@ export function DealRow({
             </span>
           )}
         </div>
-        <div className="mt-0.5 truncate text-[13px] text-brass">{headline}</div>
-        <div className="mt-1.5 flex items-center gap-2">
-          <CountdownChip status={status} now={now} />
-          <span className="truncate text-[11px] text-muted">
-            {venue.neighborhood}
-            {meters != null && ` · ${formatWalk(meters)}`}
-          </span>
-        </div>
+        {extracted ? (
+          <>
+            <div className="mt-0.5 truncate text-[13px] text-brass">{headline}</div>
+            <div className="mt-1.5 flex items-center gap-2">
+              <CountdownChip status={status} now={now} />
+              <span className="truncate text-[11px] text-muted">
+                {venue.neighborhood}
+                {meters != null && ` · ${formatWalk(meters)}`}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="mt-1 flex items-center gap-2">
+            <span className="truncate text-[12px] text-muted">{intel}</span>
+            {meters != null && (
+              <span className="shrink-0 text-[11px] text-muted">· {formatWalk(meters)}</span>
+            )}
+          </div>
+        )}
         {buys && (
           <div className="tabular mt-1 inline-flex items-center gap-1 text-[11px] text-neon-amber">
             <Wallet className="h-3 w-3" /> ${budget} buys {buys}

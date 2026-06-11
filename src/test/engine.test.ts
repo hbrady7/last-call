@@ -187,10 +187,13 @@ describe("rankVenues", () => {
       neighborhood: null,
       lat: 41.8897,
       lng: -87.628,
+      class: "bar" as const,
+      lifecycle: "EXTRACTED" as const,
       website: null,
       dealSourceUrl: null,
       tags: [],
       cashOnly: false,
+      distanceFromHqM: 0,
       deals: [
         deal({
           venueId: "live",

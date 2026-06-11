@@ -10,6 +10,7 @@ import { useStore } from "@/store/useStore";
 import { rankVenues } from "@/lib/engine/rank";
 import { applyFilters } from "@/lib/engine/filter";
 import { planTonight } from "@/lib/engine/play";
+import { HQ } from "@/lib/hq";
 import { FilterChips } from "./FilterChips";
 import { BudgetBar } from "./BudgetBar";
 import { DealRow } from "./DealRow";
@@ -44,6 +45,10 @@ export function RadarApp() {
   const favorites = useStore((s) => s.favorites);
   const selectedSlug = useStore((s) => s.selectedSlug);
   const select = useStore((s) => s.select);
+  const anchor = useStore((s) => s.anchor);
+  const setAnchor = useStore((s) => s.setAnchor);
+  const anchorPoint =
+    anchor === "gps" && userLoc ? userLoc : { lat: HQ.lat, lng: HQ.lng };
 
   const [snap, setSnap] = useState<SnapIndex>(1);
   const [tab, setTab] = useState<Tab>("all");
@@ -72,8 +77,8 @@ export function RadarApp() {
   }, [geoStatus, request]);
 
   const ranked = useMemo(
-    () => rankVenues(venues, now, userLoc),
-    [venues, now, userLoc]
+    () => rankVenues(venues, now, anchorPoint),
+    [venues, now, anchorPoint.lat, anchorPoint.lng] // eslint-disable-line react-hooks/exhaustive-deps
   );
   const filtered = useMemo(
     () => applyFilters(ranked, filters),
@@ -130,6 +135,7 @@ export function RadarApp() {
         selectedSlug={selectedSlug}
         onSelect={handleMarkerSelect}
         userLoc={userLoc}
+        anchorPoint={anchorPoint}
       />
 
       <RadarSweep trigger={sweep} />
@@ -148,18 +154,48 @@ export function RadarApp() {
             )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={request}
-          aria-label="Find deals near me"
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-brass/30 bg-surface/90 text-neon-amber backdrop-blur active:scale-95"
-        >
-          {geoStatus === "locating" ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Crosshair className="h-5 w-5" />
-          )}
-        </button>
+        <div className="pointer-events-auto flex flex-col items-end gap-2">
+          <button
+            type="button"
+            onClick={request}
+            aria-label="Find deals near me"
+            className="grid h-11 w-11 place-items-center rounded-full border border-brass/30 bg-surface/90 text-neon-amber backdrop-blur active:scale-95"
+          >
+            {geoStatus === "locating" ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Crosshair className="h-5 w-5" />
+            )}
+          </button>
+          {/* Anchor toggle — re-anchors distances & sort instantly */}
+          <div className="flex overflow-hidden rounded-full border border-brass/30 bg-surface/90 text-[11px] backdrop-blur">
+            <button
+              type="button"
+              onClick={() => setAnchor("hq")}
+              className={cn(
+                "px-2.5 py-1 font-medium",
+                anchor === "hq" ? "bg-neon-amber/20 text-neon-amber" : "text-muted"
+              )}
+            >
+              Office
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!userLoc) request();
+                setAnchor("gps");
+              }}
+              className={cn(
+                "px-2.5 py-1 font-medium",
+                anchor === "gps" && userLoc
+                  ? "bg-neon-amber/20 text-neon-amber"
+                  : "text-muted"
+              )}
+            >
+              Me
+            </button>
+          </div>
+        </div>
       </header>
 
       <GeoBanner />

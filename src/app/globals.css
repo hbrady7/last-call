@@ -209,6 +209,44 @@ body {
   outline: 2px solid var(--color-cream);
   outline-offset: 2px;
 }
+/* lifecycle states: scouted (amber dot), no-deal (dim ring), unscouted (ember) */
+.lc-pin--scouted {
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 181, 46, 0.85);
+  border-color: rgba(255, 181, 46, 0.6);
+  box-shadow: 0 0 6px rgba(255, 181, 46, 0.4);
+}
+.lc-pin--nodeal {
+  width: 14px;
+  height: 14px;
+  background: rgba(34, 25, 18, 0.85);
+  border-color: rgba(196, 154, 108, 0.35);
+}
+.lc-pin--ember {
+  width: 11px;
+  height: 11px;
+  background: rgba(196, 154, 108, 0.28);
+  border-color: rgba(196, 154, 108, 0.22);
+}
+/* worth-the-trip venues (outside the ring) get a distinct dashed ring */
+.lc-pin--wtt {
+  border-style: dashed;
+  border-color: var(--color-brass);
+}
+.lc-hq {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--color-cream);
+  background: rgba(22, 16, 11, 0.92);
+  border: 2px solid var(--color-cream);
+  box-shadow: 0 0 10px rgba(243, 233, 218, 0.4);
+}
 .lc-user {
   width: 16px;
   height: 16px;

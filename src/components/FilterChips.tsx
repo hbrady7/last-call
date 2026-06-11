@@ -8,7 +8,9 @@ const CHIPS: { key: FilterKey; label: string }[] = [
   { key: "cocktails", label: "Cocktails" },
   { key: "food", label: "Food" },
   { key: "dives", label: "Dives" },
+  { key: "patio", label: "Patio" },
   { key: "walk15", label: "≤15 min walk" },
+  { key: "hasDeals", label: "Has deals" },
 ];
 
 export function FilterChips({ extra }: { extra?: { key: FilterKey; label: string }[] }) {

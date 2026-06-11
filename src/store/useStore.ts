@@ -9,9 +9,11 @@ export type FilterKey =
   | "food"
   | "dives"
   | "walk15"
-  | "patio";
+  | "patio"
+  | "hasDeals";
 
 export type GeoStatus = "idle" | "locating" | "granted" | "denied";
+export type Anchor = "hq" | "gps";
 
 export interface VisitLog {
   venueId: string;
@@ -30,6 +32,7 @@ interface Store {
   userLoc: { lat: number; lng: number } | null;
   geoStatus: GeoStatus;
   beeline: boolean;
+  anchor: Anchor;
 
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
@@ -40,6 +43,7 @@ interface Store {
   setUserLoc: (loc: { lat: number; lng: number } | null) => void;
   setGeoStatus: (s: GeoStatus) => void;
   setBeeline: (b: boolean) => void;
+  setAnchor: (a: Anchor) => void;
 }
 
 export const useStore = create<Store>()(
@@ -53,6 +57,7 @@ export const useStore = create<Store>()(
       userLoc: null,
       geoStatus: "idle",
       beeline: false,
+      anchor: "hq",
 
       toggleFavorite: (id) =>
         set((s) => ({
@@ -73,6 +78,7 @@ export const useStore = create<Store>()(
       setUserLoc: (loc) => set({ userLoc: loc }),
       setGeoStatus: (s) => set({ geoStatus: s }),
       setBeeline: (b) => set({ beeline: b }),
+      setAnchor: (a) => set({ anchor: a }),
     }),
     {
       name: "last-call",
@@ -82,6 +88,7 @@ export const useStore = create<Store>()(
         filters: s.filters,
         budget: s.budget,
         visits: s.visits,
+        anchor: s.anchor,
       }),
     }
   )

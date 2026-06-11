@@ -1,24 +1,40 @@
 "use client";
 import { useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RankedVenue } from "@/lib/engine/rank";
-import type { DealState } from "@/lib/engine/status";
-import { CHICAGO_CENTER } from "@/lib/hooks/useGeolocation";
+import { HQ, RADIUS_METERS } from "@/lib/hq";
 
-function pinClass(state: DealState): string {
-  if (state === "LIVE") return "lc-pin lc-pin--live";
-  if (state === "STARTS_SOON") return "lc-pin lc-pin--soon";
-  return "lc-pin lc-pin--dim";
-}
-
+/**
+ * Marker visuals carry the lifecycle story: EXTRACTED venues glow with their
+ * Steal Score (live = red pulse, soon = amber), SCOUTED show an amber dot,
+ * UNSCOUTED a faint ember, NO_DEAL_FOUND a dim ring. The city lights up over
+ * time as the pipeline works.
+ */
 function venueIcon(r: RankedVenue, selected: boolean): L.DivIcon {
+  const lc = r.venue.lifecycle;
+  let cls = "lc-pin lc-pin--ember";
+  let label = "";
+  if (lc === "EXTRACTED") {
+    cls =
+      r.status.state === "LIVE"
+        ? "lc-pin lc-pin--live"
+        : r.status.state === "STARTS_SOON"
+          ? "lc-pin lc-pin--soon"
+          : "lc-pin lc-pin--dim";
+    label = String(r.score);
+  } else if (lc === "SCOUTED") {
+    cls = "lc-pin lc-pin--scouted";
+  } else if (lc === "NO_DEAL_FOUND") {
+    cls = "lc-pin lc-pin--nodeal";
+  }
+  const wtt = r.venue.tags.includes("worth-the-trip") ? " lc-pin--wtt" : "";
   return L.divIcon({
     className: "",
-    html: `<div class="${pinClass(r.status.state)}${selected ? " lc-pin--selected" : ""}">${r.score}</div>`,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
+    html: `<div class="${cls}${wtt}${selected ? " lc-pin--selected" : ""}">${label}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
   });
 }
 
@@ -49,18 +65,26 @@ function MapController({
   return null;
 }
 
+const hqIcon = L.divIcon({
+  className: "",
+  html: `<div class="lc-hq" title="330 N Wabash">HQ</div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+});
+
 export default function MapView({
   ranked,
   selectedSlug,
   onSelect,
   userLoc,
+  anchorPoint,
 }: {
   ranked: RankedVenue[];
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
   userLoc: { lat: number; lng: number } | null;
+  anchorPoint: { lat: number; lng: number };
 }) {
-  const center = userLoc ?? CHICAGO_CENTER;
   const focus = useMemo(() => {
     const sel = ranked.find((r) => r.venue.slug === selectedSlug);
     return sel && sel.venue.lat != null && sel.venue.lng != null
@@ -71,7 +95,7 @@ export default function MapView({
   return (
     <div className="map-tint absolute inset-0">
       <MapContainer
-        center={[center.lat, center.lng]}
+        center={[HQ.lat, HQ.lng]}
         zoom={14}
         zoomControl={false}
         attributionControl
@@ -84,7 +108,20 @@ export default function MapView({
           subdomains="abcd"
           maxZoom={20}
         />
-        <MapController userLoc={userLoc} focus={focus} />
+        {/* 2-mile coverage ring around HQ */}
+        <Circle
+          center={[HQ.lat, HQ.lng]}
+          radius={RADIUS_METERS}
+          pathOptions={{
+            color: "#C49A6C",
+            weight: 1,
+            opacity: 0.35,
+            fillColor: "#FFB52E",
+            fillOpacity: 0.03,
+          }}
+        />
+        <MapController userLoc={focus ? null : anchorPoint} focus={focus} />
+        <Marker position={[HQ.lat, HQ.lng]} icon={hqIcon} />
         {userLoc && (
           <Marker position={[userLoc.lat, userLoc.lng]} icon={userIcon} />
         )}

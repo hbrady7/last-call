@@ -38,10 +38,13 @@ async function main() {
           neighborhood: v.neighborhood,
           lat: v.lat,
           lng: v.lng,
+          class: v.class,
+          lifecycle: v.lifecycle,
           website: v.website,
           dealSourceUrl: v.dealSourceUrl,
           tags: v.tags,
           cashOnly: v.cashOnly,
+          distanceFromHqM: v.distanceFromHqM,
         },
       });
   }

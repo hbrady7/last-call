@@ -19,10 +19,13 @@ export const venues = pgTable("venues", {
   neighborhood: text("neighborhood"),
   lat: doublePrecision("lat"),
   lng: doublePrecision("lng"),
+  class: text("class").notNull().default("bar"), // 'bar' | 'restaurant-bar'
+  lifecycle: text("lifecycle").notNull().default("UNSCOUTED"),
   website: text("website"),
   dealSourceUrl: text("deal_source_url"),
   tags: text("tags").array().notNull().default([]),
   cashOnly: boolean("cash_only").notNull().default(false),
+  distanceFromHqM: integer("distance_from_hq_m"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -45,6 +48,7 @@ export const deals = pgTable("deals", {
 export const scrapeLog = pgTable("scrape_log", {
   id: serial("id").primaryKey(),
   venueId: text("venue_id").notNull(),
+  step: text("step").notNull().default("extract"), // 'scout' | 'extract'
   ranAt: timestamp("ran_at", { withTimezone: true }).notNull().defaultNow(),
   status: text("status").notNull(), // ok | no_deal_found | fetch_error | low_confidence
   note: text("note"),

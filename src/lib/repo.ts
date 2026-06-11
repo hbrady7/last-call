@@ -1,30 +1,85 @@
+import { z } from "zod";
 import {
   SeedSchema,
+  VenueSchema,
   type Deal,
   type Venue,
   type VenueWithDeals,
 } from "./types";
 import seedJson from "../../data/seed.json";
+import censusJson from "../../data/census.json";
+import { haversineMeters } from "./engine/distance";
+
+const CensusSchema = z.object({
+  generatedAt: z.string().nullable().optional(),
+  venues: z.array(VenueSchema),
+});
+
+/** Normalize a venue name for dedupe: strip LLC/INC, punctuation, case. */
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\b(llc|inc|ltd|co|corp|the)\b/g, "")
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+}
+
+/**
+ * Merge census venues onto the verified seed. Seed wins on existence; a census
+ * venue is dropped when it matches a seed venue by normalized name or sits
+ * within 60 m of one (same-bar dedupe).
+ */
+function mergeCensus(seed: Venue[], census: Venue[]): Venue[] {
+  const seedNames = new Set(seed.map((v) => normalizeName(v.name)));
+  const merged = [...seed];
+  for (const c of census) {
+    if (seedNames.has(normalizeName(c.name))) continue;
+    const dup = seed.some(
+      (s) =>
+        s.lat != null &&
+        s.lng != null &&
+        c.lat != null &&
+        c.lng != null &&
+        haversineMeters(s.lat, s.lng, c.lat, c.lng) < 60 &&
+        normalizeName(s.name).slice(0, 4) === normalizeName(c.name).slice(0, 4)
+    );
+    if (!dup) merged.push(c);
+  }
+  return merged;
+}
 
 export interface DealsRepo {
   /** Every venue with its deals attached. Callers filter for display. */
   getVenuesWithDeals(): Promise<VenueWithDeals[]>;
   getVenueBySlug(slug: string): Promise<VenueWithDeals | null>;
-  /** Venues that have a dealSourceUrl, stalest-deal-first, for the scraper. */
+  /** Venues that have a dealSourceUrl, stalest-deal-first, for the extractor. */
   getStalestVenues(limit: number): Promise<Venue[]>;
+  /** UNSCOUTED venues (oldest-first by id), for the scout step. */
+  getUnscoutedVenues(limit: number): Promise<Venue[]>;
   /** Atomically replace a venue's happy_hour deals (pipeline write). */
   replaceHappyHourDeals(venueId: string, deals: Deal[]): Promise<void>;
   logScrape(entry: {
     venueId: string;
+    step?: "scout" | "extract";
     status: string;
     note?: string;
   }): Promise<void>;
   /** Recent scrape_log entries, newest first (empty under StaticRepo). */
   getScrapeLog(limit: number): Promise<ScrapeLogEntry[]>;
+  /** Persist scout results: website/dealSourceUrl + lifecycle advance. */
+  setScoutResult(
+    venueId: string,
+    patch: {
+      website?: string | null;
+      dealSourceUrl?: string | null;
+      lifecycle: Venue["lifecycle"];
+    }
+  ): Promise<void>;
 }
 
 export interface ScrapeLogEntry {
   venueId: string;
+  step: string;
   ranAt: string;
   status: string;
   note: string | null;
@@ -53,22 +108,28 @@ function stripDeals(v: VenueWithDeals): Venue {
     neighborhood: v.neighborhood,
     lat: v.lat,
     lng: v.lng,
+    class: v.class,
+    lifecycle: v.lifecycle,
     website: v.website,
     dealSourceUrl: v.dealSourceUrl,
     tags: v.tags,
     cashOnly: v.cashOnly,
+    distanceFromHqM: v.distanceFromHqM,
   };
   return bare;
 }
 
 // ─────────────────────────── StaticRepo (seed.json) ───────────────────────────
 class StaticRepo implements DealsRepo {
-  private venues: Venue[];
+  private venues: Venue[]; // merged (seed + census) — what reads return
+  private seedVenues: Venue[]; // original seed only — what persists to seed.json
   private deals: Deal[];
 
   constructor() {
     const parsed = SeedSchema.parse(seedJson);
-    this.venues = parsed.venues;
+    const census = CensusSchema.parse(censusJson);
+    this.seedVenues = parsed.venues;
+    this.venues = mergeCensus(parsed.venues, census.venues);
     this.deals = parsed.deals;
   }
 
@@ -93,6 +154,12 @@ class StaticRepo implements DealsRepo {
       .map(stripDeals);
   }
 
+  async getUnscoutedVenues(limit: number): Promise<Venue[]> {
+    return this.venues
+      .filter((v) => v.lifecycle === "UNSCOUTED")
+      .slice(0, limit);
+  }
+
   async replaceHappyHourDeals(venueId: string, deals: Deal[]): Promise<void> {
     // Persist to seed.json when the filesystem is writable (local `pnpm scrape`).
     // In a read-only serverless runtime this throws and we degrade loudly.
@@ -110,7 +177,7 @@ class StaticRepo implements DealsRepo {
       );
       await writeFile(
         path,
-        JSON.stringify({ venues: this.venues, deals: this.deals }, null, 2) +
+        JSON.stringify({ venues: this.seedVenues, deals: this.deals }, null, 2) +
           "\n"
       );
     } catch (e) {
@@ -121,13 +188,35 @@ class StaticRepo implements DealsRepo {
     }
   }
 
+  async setScoutResult(
+    venueId: string,
+    patch: {
+      website?: string | null;
+      dealSourceUrl?: string | null;
+      lifecycle: Venue["lifecycle"];
+    }
+  ): Promise<void> {
+    const apply = (v: Venue) => {
+      if (v.id !== venueId) return v;
+      return {
+        ...v,
+        website: patch.website ?? v.website,
+        dealSourceUrl: patch.dealSourceUrl ?? v.dealSourceUrl,
+        lifecycle: patch.lifecycle,
+      };
+    };
+    this.venues = this.venues.map(apply);
+    this.seedVenues = this.seedVenues.map(apply);
+  }
+
   async logScrape(entry: {
     venueId: string;
+    step?: "scout" | "extract";
     status: string;
     note?: string;
   }): Promise<void> {
     console.log(
-      `[scrape_log] ${entry.venueId} → ${entry.status}${entry.note ? ` · ${entry.note}` : ""}`
+      `[scrape_log:${entry.step ?? "extract"}] ${entry.venueId} → ${entry.status}${entry.note ? ` · ${entry.note}` : ""}`
     );
   }
 
@@ -197,6 +286,35 @@ class DrizzleRepo implements DealsRepo {
       .map(stripDeals);
   }
 
+  async getUnscoutedVenues(limit: number): Promise<Venue[]> {
+    const db = await this.dbPromise;
+    const schema = await this.schemaPromise;
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select()
+      .from(schema.venues)
+      .where(eq(schema.venues.lifecycle, "UNSCOUTED"))
+      .limit(limit);
+    return rows as Venue[];
+  }
+
+  async setScoutResult(
+    venueId: string,
+    patch: {
+      website?: string | null;
+      dealSourceUrl?: string | null;
+      lifecycle: Venue["lifecycle"];
+    }
+  ): Promise<void> {
+    const db = await this.dbPromise;
+    const schema = await this.schemaPromise;
+    const { eq } = await import("drizzle-orm");
+    const set: Record<string, unknown> = { lifecycle: patch.lifecycle };
+    if (patch.website !== undefined) set.website = patch.website;
+    if (patch.dealSourceUrl !== undefined) set.dealSourceUrl = patch.dealSourceUrl;
+    await db.update(schema.venues).set(set).where(eq(schema.venues.id, venueId));
+  }
+
   async replaceHappyHourDeals(venueId: string, deals: Deal[]): Promise<void> {
     const db = await this.dbPromise;
     const schema = await this.schemaPromise;
@@ -227,6 +345,7 @@ class DrizzleRepo implements DealsRepo {
 
   async logScrape(entry: {
     venueId: string;
+    step?: "scout" | "extract";
     status: string;
     note?: string;
   }): Promise<void> {
@@ -234,6 +353,7 @@ class DrizzleRepo implements DealsRepo {
     const schema = await this.schemaPromise;
     await db.insert(schema.scrapeLog).values({
       venueId: entry.venueId,
+      step: entry.step ?? "extract",
       status: entry.status,
       note: entry.note ?? null,
     });
@@ -250,6 +370,7 @@ class DrizzleRepo implements DealsRepo {
       .limit(limit);
     return (rows as Record<string, unknown>[]).map((r) => ({
       venueId: r.venueId as string,
+      step: (r.step as string) ?? "extract",
       ranAt: new Date(r.ranAt as string).toISOString(),
       status: r.status as string,
       note: (r.note as string | null) ?? null,
