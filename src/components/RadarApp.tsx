@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
-import { Crosshair, Loader2, Heart as HeartIcon } from "lucide-react";
+import { Crosshair, Loader2, Heart as HeartIcon, Navigation2 } from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
 import { useTick } from "@/lib/hooks/useTick";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
@@ -14,6 +14,7 @@ import { DealRow } from "./DealRow";
 import { BottomSheet, type SnapIndex } from "./BottomSheet";
 import { GeoBanner } from "./GeoBanner";
 import { DealDetail } from "./DealDetail";
+import { BeelineMode } from "./BeelineMode";
 import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import("./MapView"), {
@@ -73,6 +74,24 @@ export function RadarApp() {
   const liveCount = ranked.filter((r) => r.status.state === "LIVE").length;
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
 
+  const beeline = useStore((s) => s.beeline);
+  const setBeeline = useStore((s) => s.setBeeline);
+  // Best target for BEELINE: nearest LIVE deal, else nearest opening-soon.
+  const beelineTarget = useMemo(() => {
+    const withCoords = ranked.filter(
+      (r) => r.venue.lat != null && r.venue.lng != null && r.walkMin != null
+    );
+    const live = withCoords
+      .filter((r) => r.status.state === "LIVE")
+      .sort((a, b) => (a.walkMin ?? 0) - (b.walkMin ?? 0));
+    if (live[0]) return live[0];
+    return (
+      withCoords
+        .filter((r) => r.status.state === "STARTS_SOON")
+        .sort((a, b) => (a.walkMin ?? 0) - (b.walkMin ?? 0))[0] ?? null
+    );
+  }, [ranked]);
+
   // Marker tap: highlight + center, surface the row.
   function handleMarkerSelect(slug: string) {
     select(slug);
@@ -125,6 +144,19 @@ export function RadarApp() {
       </header>
 
       <GeoBanner />
+
+      {/* BEELINE floating action button */}
+      {userLoc && beelineTarget && !beeline && (
+        <button
+          type="button"
+          onClick={() => setBeeline(true)}
+          className="absolute right-4 z-[1100] flex items-center gap-2 rounded-full border border-neon-amber/60 bg-ink/90 px-4 py-2.5 font-display text-sm text-neon-amber shadow-[0_0_20px_rgba(255,181,46,0.35)] backdrop-blur active:scale-95"
+          style={{ bottom: "calc(18dvh + 16px)" }}
+        >
+          <Navigation2 className="h-4 w-4" fill="currentColor" />
+          BEELINE
+        </button>
+      )}
 
       {/* Bottom sheet */}
       <BottomSheet snap={snap} onSnap={setSnap}>
@@ -210,6 +242,18 @@ export function RadarApp() {
             venue={detailVenue}
             now={now}
             onClose={() => setDetailSlug(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* BEELINE MODE overlay */}
+      <AnimatePresence>
+        {beeline && beelineTarget && userLoc && (
+          <BeelineMode
+            target={beelineTarget}
+            initialUser={userLoc}
+            now={now}
+            onClose={() => setBeeline(false)}
           />
         )}
       </AnimatePresence>

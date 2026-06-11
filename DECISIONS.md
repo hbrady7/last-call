@@ -113,4 +113,15 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ## Phase 6 — Awesome Layer
 
+### 1. BEELINE MODE (the killer demo)
+- Full-screen drunk-proof compass: one giant glowing `Navigation2` arrow rotates
+  to `bearing(user → bestLiveDeal) − deviceHeading`, distance counts down via
+  `watchPosition` as you walk, and within 25 m it flips to "YOU MADE IT".
+- `useDeviceHeading` handles both worlds: iOS `webkitCompassHeading` (with the
+  `DeviceOrientationEvent.requestPermission()` gesture) and Android
+  `deviceorientationabsolute`'s `alpha`. No compass / no permission → arrow goes
+  north-relative with an honest heads-up (the spec's no-compass fallback).
+- Target = nearest LIVE deal by walk time, falling back to nearest opening-soon.
+  FAB only appears when there's a location and a target.
+
 ## Phase 7 — Final
