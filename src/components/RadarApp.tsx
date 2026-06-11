@@ -11,6 +11,7 @@ import { rankVenues } from "@/lib/engine/rank";
 import { applyFilters } from "@/lib/engine/filter";
 import { planTonight } from "@/lib/engine/play";
 import { FilterChips } from "./FilterChips";
+import { BudgetBar } from "./BudgetBar";
 import { DealRow } from "./DealRow";
 import { BottomSheet, type SnapIndex } from "./BottomSheet";
 import { GeoBanner } from "./GeoBanner";
@@ -213,6 +214,7 @@ export function RadarApp() {
             </div>
           </div>
           <FilterChips />
+          <BudgetBar />
           {play && play.stops.length >= 2 && (
             <div className="px-4 pt-2">
               <button

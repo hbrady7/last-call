@@ -132,3 +132,6 @@ Append-only log of choices made under design-lead authority. Newest at the botto
   shareable text plan (native share sheet → clipboard fallback).
 
 ## Phase 7 — Final
+
+### 4. Damage calculator
+- Set a budget ($10/$20/$40, persisted); every row computes `floor(budget / cheapest priced drink)` and shows "$20 buys 5 Tallboys" — pure math, zero AI.

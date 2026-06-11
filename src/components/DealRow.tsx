@@ -5,7 +5,21 @@ import { formatWalk } from "@/lib/engine/distance";
 import { ScoreBadge } from "./ScoreBadge";
 import { CountdownChip } from "./CountdownChip";
 import { Heart } from "./Heart";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Wallet } from "lucide-react";
+import { useStore } from "@/store/useStore";
+
+/** "$20 → 5 Tallboys" — pure math off the cheapest priced drink. */
+function whatBudgetBuys(ranked: RankedVenue, budget: number): string | null {
+  const items = ranked.headlineDeal?.items ?? [];
+  const drinks = items.filter((i) => i.price != null && i.category !== "food");
+  if (drinks.length === 0) return null;
+  const cheapest = drinks.reduce((a, b) =>
+    (a.price as number) <= (b.price as number) ? a : b
+  );
+  const count = Math.floor(budget / (cheapest.price as number));
+  if (count < 1) return `not quite one ${cheapest.label.toLowerCase()}`;
+  return `${count} ${cheapest.label}${count > 1 ? "s" : ""}`;
+}
 
 export function DealRow({
   ranked,
@@ -19,6 +33,8 @@ export function DealRow({
   onSelect: (slug: string) => void;
 }) {
   const { venue, status, score, meters, headline, stale } = ranked;
+  const budget = useStore((s) => s.budget);
+  const buys = budget != null ? whatBudgetBuys(ranked, budget) : null;
   return (
     <button
       type="button"
@@ -50,6 +66,11 @@ export function DealRow({
             {meters != null && ` · ${formatWalk(meters)}`}
           </span>
         </div>
+        {buys && (
+          <div className="tabular mt-1 inline-flex items-center gap-1 text-[11px] text-neon-amber">
+            <Wallet className="h-3 w-3" /> ${budget} buys {buys}
+          </div>
+        )}
         {stale && (
           <div className="mt-1 inline-flex items-center gap-1 text-[10px] text-neon-amber/80">
             <AlertTriangle className="h-3 w-3" /> verify before you go
