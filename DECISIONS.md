@@ -124,4 +124,11 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 - Target = nearest LIVE deal by walk time, falling back to nearest opening-soon.
   FAB only appears when there's a location and a target.
 
+### 3. Tonight's Play
+- Pure-engine route planner (no AI): start at the top-ranked LIVE deal, then
+  greedily hop to the nearest still-live bar (≤14 min hops, max 3 stops),
+  checking each window is still open on arrival via accumulated walk time.
+- Estimates total damage from the cheapest drink at each stop and emits a
+  shareable text plan (native share sheet → clipboard fallback).
+
 ## Phase 7 — Final

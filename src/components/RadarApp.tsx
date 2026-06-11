@@ -9,6 +9,7 @@ import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { useStore } from "@/store/useStore";
 import { rankVenues } from "@/lib/engine/rank";
 import { applyFilters } from "@/lib/engine/filter";
+import { planTonight } from "@/lib/engine/play";
 import { FilterChips } from "./FilterChips";
 import { DealRow } from "./DealRow";
 import { BottomSheet, type SnapIndex } from "./BottomSheet";
@@ -16,6 +17,8 @@ import { GeoBanner } from "./GeoBanner";
 import { DealDetail } from "./DealDetail";
 import { BeelineMode } from "./BeelineMode";
 import { RadarSweep } from "./RadarSweep";
+import { TonightsPlay } from "./TonightsPlay";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import("./MapView"), {
@@ -45,6 +48,7 @@ export function RadarApp() {
   const [tab, setTab] = useState<Tab>("all");
   const [detailSlug, setDetailSlug] = useState<string | null>(null);
   const [sweep, setSweep] = useState(0);
+  const [showPlay, setShowPlay] = useState(false);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Fire the radar sweep once the deals first land, then again on each re-locate.
@@ -83,6 +87,8 @@ export function RadarApp() {
   );
   const liveCount = ranked.filter((r) => r.status.state === "LIVE").length;
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
+
+  const play = useMemo(() => planTonight(ranked, now), [ranked, now]);
 
   const beeline = useStore((s) => s.beeline);
   const setBeeline = useStore((s) => s.setBeeline);
@@ -207,6 +213,18 @@ export function RadarApp() {
             </div>
           </div>
           <FilterChips />
+          {play && play.stops.length >= 2 && (
+            <div className="px-4 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowPlay(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-coaster border border-neon-amber/40 bg-neon-amber/10 py-2.5 text-[13px] font-semibold text-neon-amber active:scale-[0.99]"
+              >
+                <Sparkles className="h-4 w-4" />
+                Tonight&apos;s Play · {play.stops.length} stops · ~${play.totalDamage}
+              </button>
+            </div>
+          )}
         </div>
 
         {loading && (
@@ -255,6 +273,13 @@ export function RadarApp() {
             now={now}
             onClose={() => setDetailSlug(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Tonight's Play overlay */}
+      <AnimatePresence>
+        {showPlay && play && (
+          <TonightsPlay play={play} onClose={() => setShowPlay(false)} />
         )}
       </AnimatePresence>
 
