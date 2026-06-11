@@ -218,22 +218,52 @@ body {
   box-shadow: 0 0 0 4px rgba(78, 163, 255, 0.3);
 }
 
-/* radar sweep arm */
+/* radar sweep arm: a rotating conic wedge centered on its container */
 .radar-arm {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 50vmax;
-  height: 50vmax;
-  transform-origin: top left;
+  width: 150vmax;
+  height: 150vmax;
+  margin-left: -75vmax;
+  margin-top: -75vmax;
+  border-radius: 9999px;
   background: conic-gradient(
     from 0deg,
-    rgba(255, 181, 46, 0.28),
-    rgba(255, 181, 46, 0) 35%
+    rgba(255, 181, 46, 0.3),
+    rgba(255, 181, 46, 0) 28%
   );
-  border-radius: 0 0 100% 0;
-  pointer-events: none;
   animation: radar-sweep 1.6s linear;
+}
+
+/* expanding ping rings */
+.radar-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 181, 46, 0.5);
+  animation: radar-ring 1.6s ease-out forwards;
+}
+.radar-ring--delayed {
+  animation-delay: 0.4s;
+}
+@keyframes radar-ring {
+  from {
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    margin-top: -6px;
+    opacity: 0.8;
+  }
+  to {
+    width: 150vmax;
+    height: 150vmax;
+    margin-left: -75vmax;
+    margin-top: -75vmax;
+    opacity: 0;
+  }
 }
 
 /* hide scrollbars inside the sheet but keep scroll */

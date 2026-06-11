@@ -15,6 +15,7 @@ import { BottomSheet, type SnapIndex } from "./BottomSheet";
 import { GeoBanner } from "./GeoBanner";
 import { DealDetail } from "./DealDetail";
 import { BeelineMode } from "./BeelineMode";
+import { RadarSweep } from "./RadarSweep";
 import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import("./MapView"), {
@@ -43,7 +44,16 @@ export function RadarApp() {
   const [snap, setSnap] = useState<SnapIndex>(1);
   const [tab, setTab] = useState<Tab>("all");
   const [detailSlug, setDetailSlug] = useState<string | null>(null);
+  const [sweep, setSweep] = useState(0);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Fire the radar sweep once the deals first land, then again on each re-locate.
+  useEffect(() => {
+    if (!loading && venues.length > 0) setSweep((s) => s + 1);
+  }, [loading, venues.length]);
+  useEffect(() => {
+    if (userLoc) setSweep((s) => s + 1);
+  }, [userLoc]);
 
   // Geolocation on FIRST interaction, never on load.
   useEffect(() => {
@@ -114,6 +124,8 @@ export function RadarApp() {
         onSelect={handleMarkerSelect}
         userLoc={userLoc}
       />
+
+      <RadarSweep trigger={sweep} />
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
