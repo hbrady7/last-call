@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* ───────────────────────── NEON DIVE design tokens ─────────────────────────
+   A dive bar at night, not a dark-mode dashboard. Brown-black ink, beer-sign
+   amber, one true LIVE red. Everything outside the LIVE signature stays quiet. */
+@theme {
+  --color-ink: #16100b; /* brown-black, never pure black */
+  --color-surface: #221912;
+  --color-surface-2: #2c2118;
+  --color-neon-amber: #ffb52e; /* beer-sign glow, scores */
+  --color-live-red: #ff4530; /* LIVE only */
+  --color-brass: #c49a6c;
+  --color-cream: #f3e9da;
+  --color-muted: #8a7a66;
+
+  --font-display: var(--font-archivo-black), system-ui, sans-serif;
+  --font-body: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --radius-coaster: 14px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-body);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  /* faint bar-coaster paper texture so the ink isn't flat */
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(196, 154, 108, 0.05), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(255, 181, 46, 0.04), transparent 45%);
+}
+
+/* tabular numerals everywhere a timer or price lives */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ───────────────────────── the LIVE neon signature ─────────────────────────
+   Lit neon tubes: double text-shadow glow + a slow 4% flicker. */
+.neon-amber {
+  color: var(--color-neon-amber);
+  text-shadow:
+    0 0 4px rgba(255, 181, 46, 0.8),
+    0 0 14px rgba(255, 181, 46, 0.55),
+    0 0 28px rgba(255, 181, 46, 0.3);
+}
+
+.neon-red {
+  color: var(--color-live-red);
+  text-shadow:
+    0 0 4px rgba(255, 69, 48, 0.9),
+    0 0 14px rgba(255, 69, 48, 0.6),
+    0 0 30px rgba(255, 69, 48, 0.35);
+}
+
+.neon-flicker {
+  animation: neon-flicker 6s infinite steps(1);
+}
+.neon-flicker-fast {
+  animation: neon-flicker 2.4s infinite steps(1);
+}
+
+@keyframes neon-flicker {
+  0%,
+  92%,
+  100% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.82;
+  }
+  94% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.9;
+  }
+  97% {
+    opacity: 1;
+  }
+}
+
+/* LIVE marker pulse on the map */
+.marker-pulse {
+  animation: marker-pulse 2.4s ease-out infinite;
+}
+@keyframes marker-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 48, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(255, 69, 48, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 48, 0);
+  }
+}
+
+/* radar sweep (Phase 6) */
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* brass hardware divider */
+.brass-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(196, 154, 108, 0.45),
+    transparent
+  );
+}
+
+/* honor reduced motion: kill every flicker, pulse, sweep */
+@media (prefers-reduced-motion: reduce) {
+  .neon-flicker,
+  .neon-flicker-fast,
+  .marker-pulse {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* leaflet dark-tint so neon pins glow above the map */
+.leaflet-container {
+  background: var(--color-ink) !important;
+  font-family: var(--font-body) !important;
+}
+.map-tint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(22, 16, 11, 0.25);
+  z-index: 400;
+}
+.leaflet-control-attribution {
+  background: rgba(22, 16, 11, 0.7) !important;
+  color: var(--color-muted) !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--color-brass) !important;
+}
+
+/* hide scrollbars inside the sheet but keep scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

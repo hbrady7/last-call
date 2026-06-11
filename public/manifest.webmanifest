@@ -1,0 +1,26 @@
+{
+  "name": "LAST CALL — Chicago Happy Hour Radar",
+  "short_name": "LAST CALL",
+  "description": "Every live drink deal around you, ranked by Steal Score.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16100B",
+  "theme_color": "#16100B",
+  "categories": ["food", "lifestyle", "navigation"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
