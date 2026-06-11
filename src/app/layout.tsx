@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/icons/icon.svg",
-    apple: "/icons/icon-192.png",
+    apple: "/icons/icon.svg",
   },
   openGraph: {
     title: "LAST CALL — Chicago Happy Hour Radar",

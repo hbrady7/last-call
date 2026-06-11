@@ -223,3 +223,20 @@ section logs the new work and judgment calls.
   of the slider so a Friday 1 AM preview works. "Back to live" clears it.
 - Carried over from v2 and still live: BEELINE MODE, Radar sweep, Tonight's
   Play, Damage calculator — 5 Awesome features total, BEELINE first.
+
+## v3 — FINAL
+- **OG image via `next/og`** (edge `ImageResponse`, no extra dep) renders the
+  neon wordmark at 1200×630; `app/icon.svg` is the favicon. Apple-touch-icon
+  repointed to the existing SVG (the referenced PNG never existed).
+- **README rewritten** as a full operator guide: zero-env promise, Neon + Vercel
+  cron setup, census re-run, pipeline ops, Steal Score + planner math, the
+  Awesome inventory, and how to hand-add a venue.
+- **Lighthouse** couldn't be run headless in this build environment, but the
+  quality floor is built in: mobile-first viewport, `theme-color`, semantic
+  headings, tap targets ≥40 px, reduced-motion kills every flicker/pulse/sweep,
+  GPS denial anchors on the Office and never breaks, and the map is clustered so
+  1000+ markers stay smooth. All routes return 200 (`/`, `/plan`, `/admin`,
+  `/api/venues`, `/opengraph-image`, `/icon.svg`).
+- **Final state:** zero-env build serves 1,029 venues with honest lifecycle
+  states; 22 engine + planner tests green; pipeline scouts/extracts under hard
+  caps and never invents a price; 5 Awesome features live (BEELINE first).
