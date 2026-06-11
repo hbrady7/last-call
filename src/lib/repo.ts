@@ -19,6 +19,15 @@ export interface DealsRepo {
     status: string;
     note?: string;
   }): Promise<void>;
+  /** Recent scrape_log entries, newest first (empty under StaticRepo). */
+  getScrapeLog(limit: number): Promise<ScrapeLogEntry[]>;
+}
+
+export interface ScrapeLogEntry {
+  venueId: string;
+  ranAt: string;
+  status: string;
+  note: string | null;
 }
 
 function attachDeals(venues: Venue[], deals: Deal[]): VenueWithDeals[] {
@@ -120,6 +129,10 @@ class StaticRepo implements DealsRepo {
     console.log(
       `[scrape_log] ${entry.venueId} → ${entry.status}${entry.note ? ` · ${entry.note}` : ""}`
     );
+  }
+
+  async getScrapeLog(): Promise<ScrapeLogEntry[]> {
+    return []; // StaticRepo logs to the console only.
   }
 }
 
@@ -224,6 +237,23 @@ class DrizzleRepo implements DealsRepo {
       status: entry.status,
       note: entry.note ?? null,
     });
+  }
+
+  async getScrapeLog(limit: number): Promise<ScrapeLogEntry[]> {
+    const db = await this.dbPromise;
+    const schema = await this.schemaPromise;
+    const { desc } = await import("drizzle-orm");
+    const rows = await db
+      .select()
+      .from(schema.scrapeLog)
+      .orderBy(desc(schema.scrapeLog.ranAt))
+      .limit(limit);
+    return (rows as Record<string, unknown>[]).map((r) => ({
+      venueId: r.venueId as string,
+      ranAt: new Date(r.ranAt as string).toISOString(),
+      status: r.status as string,
+      note: (r.note as string | null) ?? null,
+    }));
   }
 }
 

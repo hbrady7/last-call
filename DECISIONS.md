@@ -94,6 +94,23 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ## Phase 5 — Pipeline
 
+- **Forced tool-use extraction on `claude-haiku-4-5`, `temperature: 0`.** A
+  single `record_deals` tool with `tool_choice: {type:"tool"}` guarantees a
+  validated JSON shape; `block.input` is parsed by the SDK and re-checked with
+  the `ExtractionSchema` Zod schema before anything is written.
+- **Anti-hallucination lives in the system prompt** (SHIP RULE #5): explicit
+  prices only, never infer prices/times, no training-data knowledge, no HH →
+  `found:false`, max 20 items. Below 0.6 confidence or `found:false` → log and
+  keep the old data, never delete.
+- **One `runScrape` shared by the CLI and the cron route**, rate-limited to
+  ≤1 req/sec, refreshing the 8 stalest venues (or one by `--venue`).
+- **Graceful degradation verified.** Dry-run against `sushi-san` with no
+  `ANTHROPIC_API_KEY`: the page fetched + stripped via cheerio, the extractor
+  no-op'd loudly, existing seed data was kept (seed.json byte-unchanged). No key
+  → loud no-op; no secret → cron 503 + `/admin` disabled; no DB → console log.
+- **`/admin?key=CRON_SECRET`** shows scrapeable venues + scrape_log with
+  per-venue refresh buttons; the log is DB-only (StaticRepo logs to console).
+
 ## Phase 6 — Awesome Layer
 
 ## Phase 7 — Final
