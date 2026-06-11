@@ -79,6 +79,19 @@ Append-only log of choices made under design-lead authority. Newest at the botto
 
 ## Phase 4 — Detail + favorites
 
+- **Two-level tap model.** Marker tap = highlight + recenter + scroll the row
+  into view (keeps the map visible). Row tap = open the full-screen detail
+  overlay. This preserves the "marker ↔ sheet sync" requirement while making
+  detail a deliberate deeper action, not an accidental full-screen takeover.
+- **Detail is a Framer `AnimatePresence` overlay** sliding from the bottom, with
+  a per-deal schedule grid (7 day chips), priced item list (null → "—", never a
+  fake price), fine print, source link, cash-only badge, verification line, and
+  a sticky Directions CTA (`maps.google.com/?daddr=`).
+- **Favorites = an All/Saved tab** over the same ranked+filtered list, reading
+  the persisted Zustand `favorites`. Empty saved state coaches the heart action.
+- **Staleness everywhere**: rows and detail both flag `>45 days` or
+  `confidence < 0.6` with "verify before you go" — never hidden, per spec.
+
 ## Phase 5 — Pipeline
 
 ## Phase 6 — Awesome Layer
