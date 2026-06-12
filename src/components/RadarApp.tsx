@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   Wallet,
   Sparkles,
+  Dices,
 } from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
 import { useEvents } from "@/lib/hooks/useEvents";
@@ -32,6 +33,7 @@ import { voice } from "@/lib/voice";
 import { HQ } from "@/lib/hq";
 import { RightNowStrip } from "./RightNowStrip";
 import { HandshakeIndex } from "./HandshakeIndex";
+import { WheelOfPoorDecisions } from "./WheelOfPoorDecisions";
 import { FilterSheet } from "./FilterSheet";
 import { DealRow } from "./DealRow";
 import { EventRail } from "./EventRail";
@@ -96,6 +98,7 @@ export function RadarApp() {
   const [sweep, setSweep] = useState(0);
   const [showPlay, setShowPlay] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showWheel, setShowWheel] = useState(false);
   const [query, setQuery] = useState("");
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -387,9 +390,16 @@ export function RadarApp() {
             </button>
           </div>
 
-          {/* Tappable example queries */}
+          {/* Tappable example queries + the Wheel */}
           {!query && (
             <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1">
+              <button
+                type="button"
+                onClick={() => setShowWheel(true)}
+                className="flex shrink-0 items-center gap-1 rounded-full border border-neon-amber/40 bg-neon-amber/10 px-3 py-1 text-[12px] font-semibold text-neon-amber active:scale-95"
+              >
+                <Dices className="h-3.5 w-3.5" /> Spin
+              </button>
               {EXAMPLE_QUERIES.map((q) => (
                 <button
                   key={q}
@@ -454,9 +464,12 @@ export function RadarApp() {
         )}
 
         {loading && (
-          <div className="grid place-items-center gap-3 py-16 text-muted">
+          <div className="grid place-items-center gap-2 px-8 py-16 text-center text-muted">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="text-[12px]">{voice.loading(now)}</span>
+            <span className="mt-1 text-[11px] italic text-muted/70">
+              {voice.lore(now)}
+            </span>
           </div>
         )}
         {error && (
@@ -500,6 +513,20 @@ export function RadarApp() {
       {/* Filters sheet */}
       <AnimatePresence>
         {showFilters && <FilterSheet onClose={() => setShowFilters(false)} />}
+      </AnimatePresence>
+
+      {/* Wheel of Poor Decisions */}
+      <AnimatePresence>
+        {showWheel && (
+          <WheelOfPoorDecisions
+            ranked={ranked}
+            onClose={() => setShowWheel(false)}
+            onSelect={(slug) => {
+              setShowWheel(false);
+              handleMarkerSelect(slug);
+            }}
+          />
+        )}
       </AnimatePresence>
 
       {/* Detail overlay */}

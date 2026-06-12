@@ -11,6 +11,8 @@ import {
   Wallet,
   MapPin,
   Clock,
+  Flame,
+  Loader2,
 } from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
 import { useStore } from "@/store/useStore";
@@ -54,6 +56,8 @@ export function PlannerView() {
   const [noPlan, setNoPlan] = useState(false);
   const [excluded, setExcluded] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [roast, setRoast] = useState<string | null>(null);
+  const [roasting, setRoasting] = useState(false);
 
   const dayChoices = useMemo(() => {
     const base = new Date();
@@ -90,6 +94,28 @@ export function PlannerView() {
     setItinerary(plan);
     setNoPlan(!plan);
     setSaved(false);
+    setRoast(null);
+  }
+
+  async function roastPlan() {
+    if (!itinerary || roasting) return;
+    setRoasting(true);
+    try {
+      const res = await fetch("/api/roast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          plan: itineraryText(itinerary),
+          salt: excluded.length,
+        }),
+      });
+      const data = await res.json();
+      setRoast(typeof data.roast === "string" ? data.roast : null);
+    } catch {
+      setRoast("The roast machine is too drunk to type. Try again.");
+    } finally {
+      setRoasting(false);
+    }
   }
 
   function shuffle() {
@@ -315,6 +341,26 @@ export function PlannerView() {
               active={saved}
             />
           </div>
+
+          {/* ROAST MY PLAN — the app talks back */}
+          <button
+            type="button"
+            onClick={roastPlan}
+            disabled={roasting}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-coaster border border-live-red/40 bg-live-red/10 py-2.5 text-[13px] font-semibold text-live-red active:scale-[0.99] disabled:opacity-60"
+          >
+            {roasting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Flame className="h-4 w-4" />
+            )}
+            {roast ? "Roast me again" : "Roast my plan"}
+          </button>
+          {roast && (
+            <p className="mt-2 rounded-coaster border border-live-red/20 bg-surface px-3 py-3 text-[13px] italic leading-relaxed text-cream">
+              “{roast}”
+            </p>
+          )}
         </section>
       )}
     </main>
