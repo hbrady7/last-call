@@ -75,6 +75,48 @@ export const SeedSchema = z.object({
 });
 export type Seed = z.infer<typeof SeedSchema>;
 
+/* ───────────────────────────── Chicago events ─────────────────────────────
+   What's happening in the city tonight, woven onto the same radar as the deals.
+   Every event is the anchor for a "pre-game it with the cheapest drinks nearby"
+   list — events and happy hours share one map. */
+export const EventCategory = z.enum([
+  "music",
+  "festival",
+  "sports",
+  "comedy",
+  "arts",
+  "film",
+]);
+export type EventCategory = z.infer<typeof EventCategory>;
+
+export const CityEventSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  category: EventCategory,
+  venueName: z.string(),
+  neighborhood: z.string().nullable(),
+  lat: z.number(),
+  lng: z.number(),
+  /** Naive local (America/Chicago) ISO, e.g. "2026-06-11T19:05:00". */
+  start: z.string(),
+  end: z.string().nullable(),
+  /** Human cadence note ("Nightly", "Wed & Sat") or null for one-offs. */
+  recurring: z.string().nullable(),
+  /** Cheapest ticket in dollars, or null when free / not posted. */
+  priceFrom: z.number().nonnegative().nullable(),
+  free: z.boolean(),
+  url: z.string().nullable(),
+  blurb: z.string(),
+  tags: z.array(z.string()),
+});
+export type CityEvent = z.infer<typeof CityEventSchema>;
+
+export const EventsFileSchema = z.object({
+  generatedAt: z.string().nullable().optional(),
+  note: z.string().optional(),
+  events: z.array(CityEventSchema),
+});
+
 /** Shape returned by the Anthropic extraction tool-call (Phase 5). */
 export const ExtractionSchema = z.object({
   found: z.boolean(),

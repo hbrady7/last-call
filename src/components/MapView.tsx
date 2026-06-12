@@ -5,7 +5,29 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import type { RankedVenue } from "@/lib/engine/rank";
+import type { RankedEvent } from "@/lib/engine/events";
+import type { EventCategory } from "@/lib/types";
 import { HQ, RADIUS_METERS } from "@/lib/hq";
+
+const EVENT_GLYPH: Record<EventCategory, string> = {
+  music: "♪",
+  festival: "✷",
+  sports: "★",
+  comedy: "☺",
+  arts: "✦",
+  film: "▶",
+};
+
+function eventIcon(r: RankedEvent, selected: boolean): L.DivIcon {
+  const live = r.timing.state === "LIVE_NOW";
+  const cls = `lc-event${live ? " lc-event--live" : ""}${selected ? " lc-event--selected" : ""}`;
+  return L.divIcon({
+    className: "",
+    html: `<div class="${cls}">${EVENT_GLYPH[r.event.category]}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  });
+}
 
 /**
  * Marker visuals carry the lifecycle story: EXTRACTED venues glow with their
@@ -194,12 +216,18 @@ export default function MapView({
   onSelect,
   userLoc,
   anchorPoint,
+  events = [],
+  selectedEventId = null,
+  onSelectEvent,
 }: {
   ranked: RankedVenue[];
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
   userLoc: { lat: number; lng: number } | null;
   anchorPoint: { lat: number; lng: number };
+  events?: RankedEvent[];
+  selectedEventId?: string | null;
+  onSelectEvent?: (id: string) => void;
 }) {
   const focus = useMemo(() => {
     const sel = ranked.find((r) => r.venue.slug === selectedSlug);
@@ -246,6 +274,16 @@ export default function MapView({
           selectedSlug={selectedSlug}
           onSelect={onSelect}
         />
+        {/* Chicago events layer — cyan marquee pins above the amber deals */}
+        {events.map((r) => (
+          <Marker
+            key={`ev-${r.event.id}`}
+            position={[r.event.lat, r.event.lng]}
+            icon={eventIcon(r, r.event.id === selectedEventId)}
+            zIndexOffset={1000}
+            eventHandlers={{ click: () => onSelectEvent?.(r.event.id) }}
+          />
+        ))}
       </MapContainer>
     </div>
   );

@@ -240,3 +240,30 @@ section logs the new work and judgment calls.
 - **Final state:** zero-env build serves 1,029 venues with honest lifecycle
   states; 22 engine + planner tests green; pipeline scouts/extracts under hard
   caps and never invents a price; 5 Awesome features live (BEELINE first).
+
+## Phase 8 — Cheapest-first + Chicago events
+
+- **Cheapest pour is now the primary sort key.** `compareRanked` leads with the
+  absolute cheapest priced drink across a venue's deals (`cheapestDrinkPrice`,
+  food excluded); ties break on LIVE status → Steal Score → walk. Venues with no
+  priced drink keep the old `rankValue` ordering and sink below the priced ones,
+  so the map's lifecycle story survives at the bottom. Steal Score stays as a
+  secondary signal — demoted from the row's hero badge to a small ⚡ chip.
+- **Events ship as committed JSON, same as the census.** `data/events.json` is a
+  hand-curated, coordinate-verified set of real Chicago happenings (Cubs/Sox,
+  Lolla, Blues Fest, Second City, Salt Shed, …) dated across summer 2026.
+  Zero-env, validated on the way out of `/api/events` via `EventsFileSchema`.
+  Live-ticketing APIs were rejected: they'd break the "works with no keys"
+  promise. Dates are representative and refreshable by the pipeline.
+- **Seamless = one map, events as the anchor.** Events render as cyan marquee
+  pins above the amber deal pins, a "Tonight in Chicago" rail rides the bottom
+  sheet, and tapping any event opens a pre-game sheet whose body is the cheapest
+  pours nearby (`pregameDeals`: within an 18-min walk sorted cheapest-first,
+  backfilled by nearest so far-flung venues like Wrigley still get a list).
+  Toggle in the header; on by default; persisted.
+- **DealRow redesigned around the price.** A rounded "$4 / pour" tile is the hero
+  element, colored red/amber/brass by live status — the cheapest-first thesis
+  made visible at a glance. Class badge dropped to declutter.
+- **Verified:** typecheck + lint clean, 22 tests green, production build passes,
+  `/api/events` serves 25 events, and the live `/api/venues` payload sorts
+  $4 (Richard's/Skylark/Carol's) → up.

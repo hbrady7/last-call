@@ -65,3 +65,20 @@ export function scoreVenue(deals: Deal[]): number {
   if (deals.length === 0) return 0;
   return Math.max(...deals.map(scoreDeal));
 }
+
+/**
+ * The single cheapest priced *drink* across every one of a venue's deals
+ * (food excluded). This is the primary ranking key — the loudest answer to
+ * "where's the cheapest pour right now." null when no drink carries a price.
+ */
+export function cheapestDrinkPrice(deals: Deal[]): number | null {
+  let min = Number.POSITIVE_INFINITY;
+  for (const d of deals) {
+    for (const i of d.items) {
+      if (i.price != null && DRINK_CATEGORIES.includes(i.category)) {
+        min = Math.min(min, i.price);
+      }
+    }
+  }
+  return Number.isFinite(min) ? min : null;
+}

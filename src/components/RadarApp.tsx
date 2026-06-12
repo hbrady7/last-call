@@ -6,18 +6,22 @@ import { CalendarRange } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Crosshair, Loader2, Heart as HeartIcon, Navigation2 } from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
+import { useEvents } from "@/lib/hooks/useEvents";
 import { useTick } from "@/lib/hooks/useTick";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { useStore } from "@/store/useStore";
 import { rankVenues } from "@/lib/engine/rank";
+import { rankEvents } from "@/lib/engine/events";
 import { applyFilters } from "@/lib/engine/filter";
 import { parseQuery, applySearch } from "@/lib/engine/search";
 import { planTonight } from "@/lib/engine/play";
 import { HQ } from "@/lib/hq";
-import { Search, X } from "lucide-react";
+import { Search, X, Ticket } from "lucide-react";
 import { FilterChips } from "./FilterChips";
 import { BudgetBar } from "./BudgetBar";
 import { DealRow } from "./DealRow";
+import { EventRail } from "./EventRail";
+import { EventDetail } from "./EventDetail";
 import { BottomSheet, type SnapIndex } from "./BottomSheet";
 import { GeoBanner } from "./GeoBanner";
 import { DealDetail } from "./DealDetail";
@@ -43,6 +47,7 @@ type Tab = "all" | "saved";
 
 export function RadarApp() {
   const { venues, loading, error } = useVenues();
+  const { events } = useEvents();
   const tick = useTick();
   const [scrub, setScrub] = useState<Date | null>(null);
   const [showScrubber, setShowScrubber] = useState(false);
@@ -55,6 +60,10 @@ export function RadarApp() {
   const select = useStore((s) => s.select);
   const anchor = useStore((s) => s.anchor);
   const setAnchor = useStore((s) => s.setAnchor);
+  const showEvents = useStore((s) => s.showEvents);
+  const toggleEvents = useStore((s) => s.toggleEvents);
+  const selectedEventId = useStore((s) => s.selectedEventId);
+  const selectEvent = useStore((s) => s.selectEvent);
   const anchorPoint =
     anchor === "gps" && userLoc ? userLoc : { lat: HQ.lat, lng: HQ.lng };
 
@@ -107,6 +116,11 @@ export function RadarApp() {
   const liveCount = ranked.filter((r) => r.status.state === "LIVE").length;
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
 
+  const rankedEvents = useMemo(() => rankEvents(events, now), [events, now]);
+  const railEvents = showEvents ? rankedEvents : [];
+  const selectedEvent =
+    events.find((e) => e.id === selectedEventId) ?? null;
+
   const play = useMemo(() => planTonight(ranked, now), [ranked, now]);
 
   const beeline = useStore((s) => s.beeline);
@@ -149,6 +163,9 @@ export function RadarApp() {
         onSelect={handleMarkerSelect}
         userLoc={userLoc}
         anchorPoint={anchorPoint}
+        events={railEvents}
+        selectedEventId={selectedEventId}
+        onSelectEvent={selectEvent}
       />
 
       <RadarSweep trigger={sweep} />
@@ -163,7 +180,7 @@ export function RadarApp() {
             {liveCount > 0 ? (
               <span className="text-live-red">{liveCount} live now</span>
             ) : (
-              "Chicago happy-hour radar"
+              "Cheapest pours · tonight in Chicago"
             )}
           </p>
         </div>
@@ -208,19 +225,35 @@ export function RadarApp() {
               Me
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowScrubber((v) => !v)}
-            aria-label="Time scrubber"
-            className={cn(
-              "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
-              scrub
-                ? "border-neon-amber bg-neon-amber/20 text-neon-amber"
-                : "border-brass/30 bg-surface/90 text-brass"
-            )}
-          >
-            <Clock className="h-4 w-4" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={toggleEvents}
+              aria-label="Toggle Chicago events"
+              aria-pressed={showEvents}
+              className={cn(
+                "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
+                showEvents
+                  ? "border-event bg-event/20 text-event"
+                  : "border-brass/30 bg-surface/90 text-brass"
+              )}
+            >
+              <Ticket className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowScrubber((v) => !v)}
+              aria-label="Time scrubber"
+              className={cn(
+                "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
+                scrub
+                  ? "border-neon-amber bg-neon-amber/20 text-neon-amber"
+                  : "border-brass/30 bg-surface/90 text-brass"
+              )}
+            >
+              <Clock className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -332,6 +365,13 @@ export function RadarApp() {
           )}
         </div>
 
+        {showEvents && railEvents.length > 0 && (
+          <>
+            <EventRail events={railEvents} onSelect={selectEvent} />
+            <div className="brass-rule mx-4 my-2.5" />
+          </>
+        )}
+
         {loading && (
           <div className="grid place-items-center py-16 text-muted">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -377,6 +417,23 @@ export function RadarApp() {
             venue={detailVenue}
             now={now}
             onClose={() => setDetailSlug(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Event overlay — pre-game drinks for a Chicago happening */}
+      <AnimatePresence>
+        {selectedEvent && (
+          <EventDetail
+            key={selectedEvent.id}
+            event={selectedEvent}
+            ranked={ranked}
+            now={now}
+            onClose={() => selectEvent(null)}
+            onSelectVenue={(slug) => {
+              selectEvent(null);
+              handleRowSelect(slug);
+            }}
           />
         )}
       </AnimatePresence>

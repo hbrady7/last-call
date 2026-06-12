@@ -1,6 +1,6 @@
 import type { Deal, VenueWithDeals } from "../types";
 import { bestStatus, getDealStatus, type DealState, type DealStatus } from "./status";
-import { scoreDeal } from "./score";
+import { scoreDeal, cheapestDrinkPrice } from "./score";
 import { haversineMeters, walkMinutes } from "./distance";
 
 export const STATUS_WEIGHT: Record<DealState, number> = {
@@ -16,6 +16,8 @@ export interface RankedVenue {
   /** the deal driving the status/headline (best-status deal). */
   headlineDeal: Deal | null;
   score: number;
+  /** cheapest priced drink across all deals — the primary sort key. null = no priced drink. */
+  cheapestDrink: number | null;
   meters: number | null;
   walkMin: number | null;
   rankValue: number;
@@ -60,6 +62,7 @@ export function rankVenue(
   };
   const headlineDeal = best?.deal ?? null;
   const score = headlineDeal ? scoreDeal(headlineDeal) : 0;
+  const cheapestDrink = cheapestDrinkPrice(venue.deals);
 
   let meters: number | null = null;
   let walkMin: number | null = null;
@@ -76,6 +79,7 @@ export function rankVenue(
     status,
     headlineDeal,
     score,
+    cheapestDrink,
     meters,
     walkMin,
     rankValue,
@@ -84,14 +88,33 @@ export function rankVenue(
   };
 }
 
+/**
+ * Cheapest-drink-first ordering. The absolute cheapest pour wins; ties break on
+ * what makes a deal *usable right now* — live status, then Steal Score, then how
+ * far you have to walk. Venues with no priced drink (unscouted / no-deal) sink
+ * to the bottom, ordered among themselves by the old rankValue so the map's
+ * lifecycle story is preserved down there.
+ */
+export function compareRanked(a: RankedVenue, b: RankedVenue): number {
+  const ap = a.cheapestDrink;
+  const bp = b.cheapestDrink;
+  if (ap == null && bp == null) return b.rankValue - a.rankValue;
+  if (ap == null) return 1;
+  if (bp == null) return -1;
+  if (ap !== bp) return ap - bp; // cheapest pour first
+  // same price → the one you can actually drink now, then quality, then distance
+  const sw = STATUS_WEIGHT[b.status.state] - STATUS_WEIGHT[a.status.state];
+  if (sw !== 0) return sw;
+  if (b.score !== a.score) return b.score - a.score;
+  return (a.walkMin ?? Infinity) - (b.walkMin ?? Infinity);
+}
+
 export function rankVenues(
   venues: VenueWithDeals[],
   now: Date,
   user: { lat: number; lng: number } | null
 ): RankedVenue[] {
-  return venues
-    .map((v) => rankVenue(v, now, user))
-    .sort((a, b) => b.rankValue - a.rankValue);
+  return venues.map((v) => rankVenue(v, now, user)).sort(compareRanked);
 }
 
 /** Re-export for callers that only need a single deal's status. */

@@ -1,11 +1,12 @@
 "use client";
 import { cn } from "@/lib/utils";
 import type { RankedVenue } from "@/lib/engine/rank";
+import type { DealState } from "@/lib/engine/status";
 import { formatWalk } from "@/lib/engine/distance";
 import { ScoreBadge } from "./ScoreBadge";
 import { CountdownChip } from "./CountdownChip";
 import { Heart } from "./Heart";
-import { AlertTriangle, Wallet } from "lucide-react";
+import { AlertTriangle, Wallet, Zap } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 /** "$20 → 5 Tallboys" — pure math off the cheapest priced drink. */
@@ -21,6 +22,28 @@ function whatBudgetBuys(ranked: RankedVenue, budget: number): string | null {
   return `${count} ${cheapest.label}${count > 1 ? "s" : ""}`;
 }
 
+/** The hero tile: the cheapest pour, sized big, colored by how live it is. */
+function PriceTile({ price, state }: { price: number; state: DealState }) {
+  return (
+    <div
+      className={cn(
+        "tabular grid h-12 w-12 shrink-0 place-items-center rounded-2xl border leading-none",
+        state === "LIVE" &&
+          "border-live-red/60 bg-live-red/15 text-live-red neon-red",
+        state === "STARTS_SOON" &&
+          "border-neon-amber/60 bg-neon-amber/15 text-neon-amber",
+        (state === "LATER_TODAY" || state === "NOT_TODAY") &&
+          "border-brass/40 bg-surface-2 text-brass"
+      )}
+    >
+      <span className="text-[17px] font-bold">${price}</span>
+      <span className="mt-0.5 text-[8px] uppercase tracking-wider opacity-70">
+        pour
+      </span>
+    </div>
+  );
+}
+
 export function DealRow({
   ranked,
   now,
@@ -32,7 +55,7 @@ export function DealRow({
   selected: boolean;
   onSelect: (slug: string) => void;
 }) {
-  const { venue, status, score, meters, headline, stale } = ranked;
+  const { venue, status, score, cheapestDrink, meters, headline, stale } = ranked;
   const budget = useStore((s) => s.budget);
   const extracted = venue.lifecycle === "EXTRACTED";
   const buys = extracted && budget != null ? whatBudgetBuys(ranked, budget) : null;
@@ -57,10 +80,12 @@ export function DealRow({
           : "border-transparent bg-surface hover:bg-surface-2"
       )}
     >
-      {extracted ? (
+      {extracted && cheapestDrink != null ? (
+        <PriceTile price={cheapestDrink} state={status.state} />
+      ) : extracted ? (
         <ScoreBadge score={score} state={status.state} />
       ) : (
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-brass/25 bg-surface-2 text-[9px] uppercase tracking-wide text-muted">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-brass/25 bg-surface-2 text-[9px] uppercase tracking-wide text-muted">
           {venue.lifecycle === "NO_DEAL_FOUND" ? "—" : "?"}
         </div>
       )}
@@ -68,9 +93,6 @@ export function DealRow({
         <div className="flex items-center gap-2">
           <span className="truncate font-display text-[15px] text-cream">
             {venue.name}
-          </span>
-          <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted">
-            {venue.class === "bar" ? "Bar" : "Resto-bar"}
           </span>
           {venue.cashOnly && (
             <span className="shrink-0 rounded bg-brass/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brass">
@@ -81,8 +103,14 @@ export function DealRow({
         {extracted ? (
           <>
             <div className="mt-0.5 truncate text-[13px] text-brass">{headline}</div>
-            <div className="mt-1.5 flex items-center gap-2">
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <CountdownChip status={status} now={now} />
+              {score > 0 && (
+                <span className="tabular inline-flex items-center gap-0.5 rounded bg-neon-amber/10 px-1.5 py-0.5 text-[10px] font-semibold text-neon-amber/90">
+                  <Zap className="h-2.5 w-2.5" fill="currentColor" />
+                  {score}
+                </span>
+              )}
               <span className="truncate text-[11px] text-muted">
                 {venue.neighborhood}
                 {meters != null && ` · ${formatWalk(meters)}`}

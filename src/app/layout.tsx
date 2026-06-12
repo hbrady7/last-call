@@ -25,7 +25,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "LAST CALL — Chicago Happy Hour Radar",
   description:
-    "A neon GPS radar for every live drink deal around you in Chicago. Ranked by Steal Score, counting down in real time.",
+    "A neon GPS radar for the cheapest pours around you in Chicago — cheapest drinks first, counting down in real time, wired to tonight's concerts, games, and festivals so you can pre-game any event.",
   manifest: "/manifest.webmanifest",
   applicationName: "LAST CALL",
   appleWebApp: {

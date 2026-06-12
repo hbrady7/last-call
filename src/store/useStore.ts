@@ -40,6 +40,9 @@ interface Store {
   geoStatus: GeoStatus;
   beeline: boolean;
   anchor: Anchor;
+  selectedEventId: string | null;
+  // persisted
+  showEvents: boolean;
 
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
@@ -53,6 +56,8 @@ interface Store {
   setGeoStatus: (s: GeoStatus) => void;
   setBeeline: (b: boolean) => void;
   setAnchor: (a: Anchor) => void;
+  selectEvent: (id: string | null) => void;
+  toggleEvents: () => void;
 }
 
 export const useStore = create<Store>()(
@@ -68,6 +73,8 @@ export const useStore = create<Store>()(
       geoStatus: "idle",
       beeline: false,
       anchor: "hq",
+      selectedEventId: null,
+      showEvents: true,
 
       toggleFavorite: (id) =>
         set((s) => ({
@@ -92,6 +99,8 @@ export const useStore = create<Store>()(
       setGeoStatus: (s) => set({ geoStatus: s }),
       setBeeline: (b) => set({ beeline: b }),
       setAnchor: (a) => set({ anchor: a }),
+      selectEvent: (id) => set({ selectedEventId: id }),
+      toggleEvents: () => set((s) => ({ showEvents: !s.showEvents })),
     }),
     {
       name: "last-call",
@@ -103,6 +112,7 @@ export const useStore = create<Store>()(
         visits: s.visits,
         savedPlans: s.savedPlans,
         anchor: s.anchor,
+        showEvents: s.showEvents,
       }),
     }
   )
