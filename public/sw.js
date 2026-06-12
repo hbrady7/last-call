@@ -1,7 +1,11 @@
 // LAST CALL — minimal hand-rolled service worker (no next-pwa).
-// App-shell + static assets cached for offline/install; deal data always goes
-// network-first so prices and countdowns are never served stale from cache.
-const CACHE = "lastcall-v1";
+// HTML navigations go network-first so a new deploy shows up on the next load,
+// never a stale shell pointing at an old JS bundle. Hashed static assets are
+// safe to serve stale-while-revalidate (their URL changes when they change).
+// Deal/event data always goes network-first so prices and countdowns are fresh.
+//
+// Bump CACHE on any shell-affecting change — `activate` purges every older cache.
+const CACHE = "lastcall-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -34,7 +38,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Stale-while-revalidate for the shell + static assets.
+  // Network-first for HTML navigations — always boot the freshest shell, fall
+  // back to the cached "/" only when offline. This is what makes a deploy land.
+  if (request.mode === "navigate" || request.destination === "document") {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put("/", copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(request).then((c) => c || caches.match("/")))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for hashed static assets (immutable per URL).
   event.respondWith(
     caches.match(request).then((cached) => {
       const network = fetch(request)
