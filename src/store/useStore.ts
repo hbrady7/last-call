@@ -47,6 +47,7 @@ interface Store {
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
   toggleFilter: (key: FilterKey) => void;
+  clearFilters: () => void;
   setBudget: (b: number | null) => void;
   logVisit: (v: VisitLog) => void;
   savePlan: (p: SavedPlan) => void;
@@ -89,6 +90,7 @@ export const useStore = create<Store>()(
             ? s.filters.filter((k) => k !== key)
             : [...s.filters, key],
         })),
+      clearFilters: () => set({ filters: [] }),
       setBudget: (b) => set({ budget: b }),
       logVisit: (v) => set((s) => ({ visits: [...s.visits, v] })),
       savePlan: (p) => set((s) => ({ savedPlans: [p, ...s.savedPlans].slice(0, 20) })),

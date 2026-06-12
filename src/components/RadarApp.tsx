@@ -1,24 +1,35 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { CalendarRange } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { Crosshair, Loader2, Heart as HeartIcon, Navigation2 } from "lucide-react";
+import {
+  Crosshair,
+  Loader2,
+  Heart as HeartIcon,
+  Navigation2,
+  Search,
+  X,
+  Clock,
+  SlidersHorizontal,
+  Wallet,
+  Sparkles,
+} from "lucide-react";
 import { useVenues } from "@/lib/hooks/useVenues";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { useTick } from "@/lib/hooks/useTick";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { useWindowed } from "@/lib/hooks/useWindowed";
 import { useStore } from "@/store/useStore";
 import { rankVenues } from "@/lib/engine/rank";
 import { rankEvents } from "@/lib/engine/events";
 import { applyFilters } from "@/lib/engine/filter";
 import { parseQuery, applySearch } from "@/lib/engine/search";
 import { planTonight } from "@/lib/engine/play";
+import { liveStats, liveStatsLine } from "@/lib/engine/stats";
+import { voice } from "@/lib/voice";
 import { HQ } from "@/lib/hq";
-import { Search, X, Ticket } from "lucide-react";
-import { FilterChips } from "./FilterChips";
-import { BudgetBar } from "./BudgetBar";
+import { RightNowStrip } from "./RightNowStrip";
+import { FilterSheet } from "./FilterSheet";
 import { DealRow } from "./DealRow";
 import { EventRail } from "./EventRail";
 import { EventDetail } from "./EventDetail";
@@ -29,7 +40,6 @@ import { BeelineMode } from "./BeelineMode";
 import { RadarSweep } from "./RadarSweep";
 import { TonightsPlay } from "./TonightsPlay";
 import { TimeScrubber } from "./TimeScrubber";
-import { Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import("./MapView"), {
@@ -45,6 +55,15 @@ const MapView = dynamic(() => import("./MapView"), {
 
 type Tab = "all" | "saved";
 
+/** One-tap example queries — the placeholder examples, made tappable. */
+const EXAMPLE_QUERIES = [
+  "beer under $5",
+  "cocktails",
+  "patio",
+  "open late",
+  "dives",
+];
+
 export function RadarApp() {
   const { venues, loading, error } = useVenues();
   const { events } = useEvents();
@@ -55,13 +74,14 @@ export function RadarApp() {
   const { request, geoStatus } = useGeolocation();
   const userLoc = useStore((s) => s.userLoc);
   const filters = useStore((s) => s.filters);
+  const budget = useStore((s) => s.budget);
+  const setBudget = useStore((s) => s.setBudget);
   const favorites = useStore((s) => s.favorites);
   const selectedSlug = useStore((s) => s.selectedSlug);
   const select = useStore((s) => s.select);
   const anchor = useStore((s) => s.anchor);
   const setAnchor = useStore((s) => s.setAnchor);
   const showEvents = useStore((s) => s.showEvents);
-  const toggleEvents = useStore((s) => s.toggleEvents);
   const selectedEventId = useStore((s) => s.selectedEventId);
   const selectEvent = useStore((s) => s.selectEvent);
   const anchorPoint =
@@ -72,6 +92,7 @@ export function RadarApp() {
   const [detailSlug, setDetailSlug] = useState<string | null>(null);
   const [sweep, setSweep] = useState(0);
   const [showPlay, setShowPlay] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [query, setQuery] = useState("");
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -113,15 +134,36 @@ export function RadarApp() {
         : searched,
     [searched, tab, favorites]
   );
-  const liveCount = ranked.filter((r) => r.status.state === "LIVE").length;
+  const stats = useMemo(() => liveStats(ranked), [ranked]);
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
 
   const rankedEvents = useMemo(() => rankEvents(events, now), [events, now]);
   const railEvents = showEvents ? rankedEvents : [];
-  const selectedEvent =
-    events.find((e) => e.id === selectedEventId) ?? null;
+  const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
 
   const play = useMemo(() => planTonight(ranked, now), [ranked, now]);
+
+  const { count: windowCount, sentinelRef } = useWindowed(visible.length);
+
+  // Live-cluster cycle: tapping the "N live now" pill walks the camera through
+  // every live venue in turn (reuses select → map flyTo + row scroll).
+  const liveVenues = useMemo(
+    () =>
+      ranked.filter(
+        (r) =>
+          r.status.state === "LIVE" &&
+          r.venue.lat != null &&
+          r.venue.lng != null
+      ),
+    [ranked]
+  );
+  const cycleIdx = useRef(0);
+  function cycleLive() {
+    if (liveVenues.length === 0) return;
+    const target = liveVenues[cycleIdx.current % liveVenues.length];
+    cycleIdx.current += 1;
+    handleMarkerSelect(target.venue.slug);
+  }
 
   const beeline = useStore((s) => s.beeline);
   const setBeeline = useStore((s) => s.setBeeline);
@@ -155,6 +197,10 @@ export function RadarApp() {
     setDetailSlug(slug);
   }
 
+  function cycleBudget() {
+    setBudget(budget === 20 ? 40 : budget === 40 ? null : 20);
+  }
+
   return (
     <main className="relative h-dvh w-full overflow-hidden">
       <MapView
@@ -170,40 +216,47 @@ export function RadarApp() {
 
       <RadarSweep trigger={sweep} />
 
-      {/* Top bar */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
-        <div>
-          <h1 className="neon-amber neon-flicker font-display text-2xl leading-none">
+      {/* Top bar — wordmark + status-aware truth + at most three labeled controls */}
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex items-start justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+        <div className="pointer-events-auto">
+          <h1 className="neon-amber neon-flicker font-display text-xl leading-none">
             LAST CALL
           </h1>
-          <p className="tabular mt-1 text-[11px] text-brass">
-            {liveCount > 0 ? (
-              <span className="text-live-red">{liveCount} live now</span>
-            ) : (
-              "Cheapest pours · tonight in Chicago"
-            )}
-          </p>
+          {stats.liveNow > 0 ? (
+            <button
+              type="button"
+              onClick={cycleLive}
+              aria-label="Cycle the map through live deals"
+              className="tabular mt-1 inline-flex items-center gap-1.5 rounded-full border border-live-red/40 bg-ink/80 px-2 py-0.5 text-[11px] text-live-red backdrop-blur active:scale-95"
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-live-red" />
+              {liveStatsLine(stats)}
+            </button>
+          ) : (
+            <p className="tabular mt-1 text-[11px] text-brass">
+              {liveStatsLine(stats)}
+            </p>
+          )}
         </div>
-        <div className="pointer-events-auto flex flex-col items-end gap-2">
-          <button
-            type="button"
+        <div className="pointer-events-auto flex items-center gap-1.5">
+          <ControlButton
+            label="Locate"
             onClick={request}
-            aria-label="Find deals near me"
-            className="grid h-11 w-11 place-items-center rounded-full border border-brass/30 bg-surface/90 text-neon-amber backdrop-blur active:scale-95"
+            active={anchor === "gps" && !!userLoc}
           >
             {geoStatus === "locating" ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Crosshair className="h-5 w-5" />
+              <Crosshair className="h-4 w-4" />
             )}
-          </button>
-          {/* Anchor toggle — re-anchors distances & sort instantly */}
+          </ControlButton>
+          {/* Anchor toggle */}
           <div className="flex overflow-hidden rounded-full border border-brass/30 bg-surface/90 text-[11px] backdrop-blur">
             <button
               type="button"
               onClick={() => setAnchor("hq")}
               className={cn(
-                "px-2.5 py-1 font-medium",
+                "px-2.5 py-1.5 font-medium",
                 anchor === "hq" ? "bg-neon-amber/20 text-neon-amber" : "text-muted"
               )}
             >
@@ -216,7 +269,7 @@ export function RadarApp() {
                 setAnchor("gps");
               }}
               className={cn(
-                "px-2.5 py-1 font-medium",
+                "px-2.5 py-1.5 font-medium",
                 anchor === "gps" && userLoc
                   ? "bg-neon-amber/20 text-neon-amber"
                   : "text-muted"
@@ -225,37 +278,18 @@ export function RadarApp() {
               Me
             </button>
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={toggleEvents}
-              aria-label="Toggle Chicago events"
-              aria-pressed={showEvents}
-              className={cn(
-                "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
-                showEvents
-                  ? "border-event bg-event/20 text-event"
-                  : "border-brass/30 bg-surface/90 text-brass"
-              )}
-            >
-              <Ticket className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowScrubber((v) => !v)}
-              aria-label="Time scrubber"
-              className={cn(
-                "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
-                scrub
-                  ? "border-neon-amber bg-neon-amber/20 text-neon-amber"
-                  : "border-brass/30 bg-surface/90 text-brass"
-              )}
-            >
-              <Clock className="h-4 w-4" />
-            </button>
-          </div>
+          <ControlButton
+            label="Time travel"
+            onClick={() => setShowScrubber((v) => !v)}
+            active={!!scrub}
+          >
+            <Clock className="h-4 w-4" />
+          </ControlButton>
         </div>
       </header>
+
+      {/* THE ANSWER — top live picks, before any control */}
+      <RightNowStrip ranked={searched} now={now} onSelect={handleRowSelect} />
 
       <GeoBanner />
 
@@ -286,13 +320,14 @@ export function RadarApp() {
       {/* Bottom sheet */}
       <BottomSheet snap={snap} onSnap={setSnap}>
         <div className="sticky top-0 z-10 -mx-3 mb-1 bg-ink/95 pb-2 pt-1 backdrop-blur">
-          <div className="px-4 pb-2">
-            <div className="flex items-center gap-2 rounded-coaster border border-brass/25 bg-surface px-3">
+          {/* ONE compact control row: search · Filters · Budget */}
+          <div className="flex items-center gap-2 px-4 pb-2">
+            <div className="flex flex-1 items-center gap-2 rounded-coaster border border-brass/25 bg-surface px-3">
               <Search className="h-4 w-4 shrink-0 text-brass" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="martinis under $8 · patio now · dive open late"
+                placeholder="search the bar…"
                 className="w-full bg-transparent py-2.5 text-[13px] text-cream placeholder:text-muted focus:outline-none"
               />
               {query && (
@@ -306,63 +341,95 @@ export function RadarApp() {
                 </button>
               )}
             </div>
-          </div>
-          <div className="flex items-center justify-between px-4 pb-2">
-            <p className="font-display text-base text-cream">
-              {visible.length} {visible.length === 1 ? "deal" : "deals"}
-              {tab === "all" && filters.length > 0 && (
-                <span className="ml-2 text-[12px] font-normal text-muted">
-                  filtered
+            <button
+              type="button"
+              onClick={() => setShowFilters(true)}
+              aria-label="Filters"
+              className={cn(
+                "relative grid h-10 w-10 shrink-0 place-items-center rounded-coaster border",
+                filters.length > 0
+                  ? "border-neon-amber bg-neon-amber/15 text-neon-amber"
+                  : "border-brass/25 bg-surface text-brass"
+              )}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {filters.length > 0 && (
+                <span className="tabular absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-neon-amber text-[9px] font-bold text-ink">
+                  {filters.length}
                 </span>
               )}
-            </p>
-            <div className="flex rounded-full border border-brass/25 p-0.5 text-[12px]">
-              <button
-                type="button"
-                onClick={() => setTab("all")}
-                className={cn(
-                  "rounded-full px-3 py-1 font-medium transition-colors",
-                  tab === "all" ? "bg-neon-amber/15 text-neon-amber" : "text-muted"
-                )}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("saved")}
-                className={cn(
-                  "flex items-center gap-1 rounded-full px-3 py-1 font-medium transition-colors",
-                  tab === "saved" ? "bg-live-red/15 text-live-red" : "text-muted"
-                )}
-              >
-                <HeartIcon className="h-3 w-3" fill="currentColor" />
-                {favorites.length}
-              </button>
-            </div>
-          </div>
-          <FilterChips />
-          <BudgetBar />
-          <div className="px-4 pt-2">
-            <Link
-              href="/plan"
-              className="flex w-full items-center justify-center gap-2 rounded-coaster border border-brass/30 bg-surface py-2.5 text-[13px] font-semibold text-cream active:scale-[0.99]"
+            </button>
+            <button
+              type="button"
+              onClick={cycleBudget}
+              aria-label="Cycle budget"
+              className={cn(
+                "tabular flex h-10 shrink-0 items-center gap-1 rounded-coaster border px-2.5 text-[12px] font-semibold",
+                budget != null
+                  ? "border-neon-amber bg-neon-amber/15 text-neon-amber"
+                  : "border-brass/25 bg-surface text-brass"
+              )}
             >
-              <CalendarRange className="h-4 w-4 text-neon-amber" />
-              Plan a whole night →
-            </Link>
+              <Wallet className="h-4 w-4" />
+              {budget != null ? `$${budget}` : "Budget"}
+            </button>
           </div>
-          {play && play.stops.length >= 2 && (
-            <div className="px-4 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowPlay(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-coaster border border-neon-amber/40 bg-neon-amber/10 py-2.5 text-[13px] font-semibold text-neon-amber active:scale-[0.99]"
-              >
-                <Sparkles className="h-4 w-4" />
-                Tonight&apos;s Play · {play.stops.length} stops · ~${play.totalDamage}
-              </button>
+
+          {/* Tappable example queries */}
+          {!query && (
+            <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1">
+              {EXAMPLE_QUERIES.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setQuery(q)}
+                  className="shrink-0 rounded-full border border-brass/20 bg-surface px-3 py-1 text-[12px] text-muted active:scale-95"
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           )}
+
+          <div className="flex items-center justify-between px-4 pt-1.5">
+            <p className="font-display text-[13px] text-brass">
+              {visible.length} spots · cheapest first
+            </p>
+            <div className="flex items-center gap-2">
+              {play && play.stops.length >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPlay(true)}
+                  className="flex items-center gap-1 rounded-full border border-neon-amber/40 bg-neon-amber/10 px-2.5 py-1 text-[11px] font-semibold text-neon-amber"
+                >
+                  <Sparkles className="h-3 w-3" />~${play.totalDamage} run
+                </button>
+              )}
+              <div className="flex rounded-full border border-brass/25 p-0.5 text-[12px]">
+                <button
+                  type="button"
+                  onClick={() => setTab("all")}
+                  className={cn(
+                    "rounded-full px-3 py-1 font-medium transition-colors",
+                    tab === "all" ? "bg-neon-amber/15 text-neon-amber" : "text-muted"
+                  )}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("saved")}
+                  className={cn(
+                    "flex items-center gap-1 rounded-full px-3 py-1 font-medium transition-colors",
+                    tab === "saved" ? "bg-live-red/15 text-live-red" : "text-muted"
+                  )}
+                >
+                  <HeartIcon className="h-3 w-3" fill="currentColor" />
+                  {favorites.length}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {showEvents && railEvents.length > 0 && (
@@ -373,25 +440,28 @@ export function RadarApp() {
         )}
 
         {loading && (
-          <div className="grid place-items-center py-16 text-muted">
+          <div className="grid place-items-center gap-3 py-16 text-muted">
             <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="text-[12px]">{voice.loading(now)}</span>
           </div>
         )}
         {error && (
           <div className="px-4 py-12 text-center text-sm text-muted">
-            Couldn&apos;t load deals. Pull to refresh.
+            {voice.error(now)}
           </div>
         )}
         {!loading && !error && visible.length === 0 && (
           <div className="px-6 py-16 text-center text-sm text-muted">
             {tab === "saved"
-              ? "No saved deals yet. Tap the heart on any deal to keep it here."
-              : "No deals match these filters right now. Try clearing a chip."}
+              ? voice.emptySaved(now)
+              : filters.length > 0 || query
+                ? voice.emptyFiltered(now)
+                : voice.emptyNoLive(now)}
           </div>
         )}
 
         <div className="flex flex-col gap-1.5 pb-6">
-          {visible.map((r) => (
+          {visible.slice(0, windowCount).map((r) => (
             <div
               key={r.venue.id}
               ref={(el) => {
@@ -406,8 +476,16 @@ export function RadarApp() {
               />
             </div>
           ))}
+          {windowCount < visible.length && (
+            <div ref={sentinelRef} className="h-8" aria-hidden />
+          )}
         </div>
       </BottomSheet>
+
+      {/* Filters sheet */}
+      <AnimatePresence>
+        {showFilters && <FilterSheet onClose={() => setShowFilters(false)} />}
+      </AnimatePresence>
 
       {/* Detail overlay */}
       <AnimatePresence>
@@ -457,5 +535,35 @@ export function RadarApp() {
         )}
       </AnimatePresence>
     </main>
+  );
+}
+
+/** A labeled top-bar control — no more mystery meat. */
+function ControlButton({
+  label,
+  onClick,
+  active,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={cn(
+        "grid h-9 w-9 place-items-center rounded-full border backdrop-blur active:scale-95",
+        active
+          ? "border-neon-amber bg-neon-amber/20 text-neon-amber"
+          : "border-brass/30 bg-surface/90 text-brass"
+      )}
+    >
+      {children}
+    </button>
   );
 }

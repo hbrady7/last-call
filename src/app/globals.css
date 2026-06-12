@@ -310,11 +310,35 @@ body {
   margin-top: 1px;
 }
 .lc-cluster--live {
-  border-color: rgba(255, 69, 48, 0.7);
-  box-shadow: 0 0 12px rgba(255, 69, 48, 0.4);
+  color: var(--color-live-red);
+  background: rgba(34, 18, 16, 0.95);
+  border: 2px solid rgba(255, 69, 48, 0.85);
+  box-shadow:
+    0 0 12px rgba(255, 69, 48, 0.55),
+    0 0 26px rgba(255, 69, 48, 0.3);
+  animation: marker-pulse 2.6s ease-out infinite;
+}
+.lc-cluster--live span {
+  font-size: 16px;
+  color: var(--color-live-red);
 }
 .lc-cluster--live em {
+  font-style: normal;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: var(--color-live-red);
+  opacity: 0.85;
+}
+/* dead clusters recede so the live ones own the eye */
+.lc-cluster--dead {
+  opacity: 0.45;
+  border-color: rgba(196, 154, 108, 0.3);
+  box-shadow: none;
+}
+.lc-cluster--dead span {
+  font-size: 11px;
+  color: var(--color-muted);
 }
 
 .lc-hq {

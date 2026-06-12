@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -88,6 +88,21 @@ function MapController({
   return null;
 }
 
+/** Frame the anchor + the full 2-mile ring once on mount — never drift off to
+ *  Wicker Park. Runs a single fitBounds so the coverage ring is fully in view. */
+function FitRingOnce({ anchor }: { anchor: { lat: number; lng: number } }) {
+  const map = useMap();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
+    const center = L.latLng(anchor.lat, anchor.lng);
+    const bounds = center.toBounds(RADIUS_METERS * 2.15); // ring + a little air
+    map.fitBounds(bounds, { padding: [24, 24] });
+  }, [map, anchor.lat, anchor.lng]);
+  return null;
+}
+
 const hqIcon = L.divIcon({
   className: "",
   html: `<div class="lc-hq" title="330 N Wabash">HQ</div>`,
@@ -95,20 +110,37 @@ const hqIcon = L.divIcon({
   iconAnchor: [15, 15],
 });
 
-function clusterIcon(count: number, maxScore: number, hasLive: boolean): L.DivIcon {
-  const size = count > 100 ? 52 : count > 25 ? 46 : 40;
-  const cls = hasLive ? "lc-cluster lc-cluster--live" : "lc-cluster";
-  const label = count >= 1000 ? `${Math.round(count / 100) / 10}k` : `${count}`;
+/**
+ * Clusters encode URGENCY, not headcount. Any live deal inside → the bubble
+ * glows red and shows the LIVE count (the thing you care about). No live deals
+ * → the bubble recedes, dimmed, showing the raw venue count quietly.
+ */
+function clusterIcon(count: number, liveCount: number): L.DivIcon {
+  const live = liveCount > 0;
+  // live clusters scale with how much is live; dead ones stay small + quiet
+  const size = live
+    ? liveCount > 8
+      ? 54
+      : liveCount > 3
+        ? 48
+        : 42
+    : count > 100
+      ? 40
+      : 34;
+  const cls = live ? "lc-cluster lc-cluster--live" : "lc-cluster lc-cluster--dead";
+  const inner = live
+    ? `<span>${liveCount}</span><em>live</em>`
+    : `<span>${count >= 1000 ? `${Math.round(count / 100) / 10}k` : count}</span>`;
   return L.divIcon({
     className: "",
-    html: `<div class="${cls}" style="width:${size}px;height:${size}px"><span>${label}</span>${maxScore > 0 ? `<em>${maxScore}</em>` : ""}</div>`,
+    html: `<div class="${cls}" style="width:${size}px;height:${size}px">${inner}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
 }
 
 type PointProps = { slug: string; score: number; live: number };
-type ClusterProps = { maxScore: number; hasLive: number };
+type ClusterProps = { maxScore: number; liveCount: number };
 
 /** Supercluster layer — keeps the map smooth at 1000+ venues. */
 function ClusterLayer({
@@ -133,10 +165,10 @@ function ClusterLayer({
     const sc = new Supercluster<PointProps, ClusterProps>({
       radius: 64,
       maxZoom: 17,
-      map: (p) => ({ maxScore: p.score, hasLive: p.live }),
+      map: (p) => ({ maxScore: p.score, liveCount: p.live }),
       reduce: (acc, p) => {
         acc.maxScore = Math.max(acc.maxScore, p.maxScore);
-        acc.hasLive = Math.max(acc.hasLive, p.hasLive);
+        acc.liveCount += p.liveCount;
       },
     });
     sc.load(
@@ -184,7 +216,7 @@ function ClusterLayer({
             <Marker
               key={`cl-${props.cluster_id}`}
               position={[lat, lng]}
-              icon={clusterIcon(props.point_count, props.maxScore, props.hasLive > 0)}
+              icon={clusterIcon(props.point_count, props.liveCount)}
               eventHandlers={{
                 click: () => {
                   const z = Math.min(index.getClusterExpansionZoom(props.cluster_id), 18);
@@ -264,6 +296,7 @@ export default function MapView({
             fillOpacity: 0.03,
           }}
         />
+        <FitRingOnce anchor={{ lat: HQ.lat, lng: HQ.lng }} />
         <MapController userLoc={focus ? null : anchorPoint} focus={focus} />
         <Marker position={[HQ.lat, HQ.lng]} icon={hqIcon} />
         {userLoc && (
