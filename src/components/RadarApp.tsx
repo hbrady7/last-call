@@ -34,6 +34,7 @@ import { HQ } from "@/lib/hq";
 import { RightNowStrip } from "./RightNowStrip";
 import { HandshakeIndex } from "./HandshakeIndex";
 import { WheelOfPoorDecisions } from "./WheelOfPoorDecisions";
+import { Onboarding } from "./Onboarding";
 import { FilterSheet } from "./FilterSheet";
 import { DealRow } from "./DealRow";
 import { EventRail } from "./EventRail";
@@ -217,6 +218,7 @@ export function RadarApp() {
 
   return (
     <main className="relative h-dvh w-full overflow-hidden">
+      <Onboarding />
       <MapView
         ranked={searched}
         selectedSlug={selectedSlug}

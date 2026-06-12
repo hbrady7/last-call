@@ -125,12 +125,26 @@ export function PlannerView() {
     build(newExcluded);
   }
 
+  function summonUrl(it: Itinerary): string {
+    const first = it.stops[0];
+    const t = formatMinuteOfDay(chicagoNow(first.arriveAt).minuteOfDay);
+    const pick = first.pick ? `$${first.pick.price} ${first.pick.label}` : "the cheap stuff";
+    const params = new URLSearchParams({
+      t: "summon",
+      headline: `WE RIDE AT ${t}`,
+      sub: `${first.venue.name.toUpperCase()} · ${pick.toUpperCase()}`,
+      footer: `${it.stops.length} STOPS · ~$${it.totalDamage} · DON'T BE LATE`,
+    });
+    return `${window.location.origin}/share?${params.toString()}`;
+  }
+
   async function share() {
     if (!itinerary) return;
     const text = itineraryText(itinerary);
+    const url = summonUrl(itinerary);
     try {
-      if (navigator.share) await navigator.share({ title: "My Night", text });
-      else await navigator.clipboard.writeText(text);
+      if (navigator.share) await navigator.share({ title: "WE RIDE", text, url });
+      else await navigator.clipboard.writeText(`${text}\n${url}`);
     } catch {
       /* cancelled */
     }
