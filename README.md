@@ -1,14 +1,18 @@
 # LAST CALL — Chicago Happy-Hour Radar
 
 A neon GPS radar and night-planner for every drink deal around the office at
-**330 N Wabash (AMA Plaza)**. Open it and a dark Neon-Dive map shows every
-licensed bar within **2 miles**, ranked by **Steal Score**, counting down in
-real time. Plan a whole night with a beam-search itinerary, follow a giant
-glowing arrow to the nearest live deal (**BEELINE MODE**), and watch the city
-visibly light up week over week as an AI pipeline drinks through venue websites.
+**330 N Wabash (AMA Plaza)**. Open it and the **RIGHT NOW** strip leads with the
+top-3 live picks — price, walk, ends-in, one-tap directions — *before any
+control*. Behind it a Neon-Dive map shows every licensed bar within **2 miles**,
+clusters glowing red where deals are live. Plan a whole night with a beam-search
+itinerary (and let the app **roast it**), follow a giant glowing arrow to the
+nearest live deal (**BEELINE MODE**), spin the **Wheel of Poor Decisions**, and
+watch the city light up week over week as an AI pipeline drinks through venue
+websites. The three-second test is the bar: open it → know where to go.
 
 **The app fully works with zero environment variables** — it ships with the
-entire ~1,000-venue census and the verified seed committed to the repo.
+entire ~1,000-venue census, the verified seed, and 116 Chicago events (94 of
+them live-sourced) committed to the repo.
 
 ---
 
@@ -18,7 +22,9 @@ entire ~1,000-venue census and the verified seed committed to the repo.
 pnpm install
 pnpm dev          # http://localhost:3000
 pnpm typecheck && pnpm lint && pnpm build   # the green-on-every-commit trio
-pnpm test         # engine + planner Vitest suites
+pnpm test         # engine + planner + quality + soul Vitest suites (31 tests)
+pnpm qa           # data-quality report (price bands, dupes, schedule, stale)
+pnpm events:mlb   # refresh verified Cubs/Sox home games from the free MLB API
 ```
 
 ## Environment (all optional)
@@ -139,15 +145,66 @@ now", "dive open late") maps to a category/price/time/tag filter over list + map
 
 ---
 
+## Data quality — `pnpm qa`
+
+`scripts/qa.ts` is the sieve over the deal corpus: price sanity bands per
+category (beer $1–12, wine $3–20, cocktail $4–25, shot $1–15, food $1–30),
+duplicate-deal merge (same kind + overlapping window), schedule-nonsense flags
+(end ≤ start, 0-day arrays, happy_hour > 8h), and a stale sweep (>45 days).
+Reports by default; `pnpm qa --fix` writes `needsReview` flags + merges to
+`data/seed.json`. Flagged intel is **excluded from the cheapest-drink key and
+the headline status** and rendered with an "unverified" tag — never shown as
+fact. A **"report bad intel"** button on every deal posts to `/api/report`,
+which logs a `reported` row to `scrape_log` (surfaces in `/admin`, queues a
+re-extraction).
+
+## Chicago events — with provenance
+
+`data/events.json` ships two kinds of events, both honest about their source:
+
+- **Verified** — Cubs (team 112, Wrigley) + White Sox (145, Rate Field) **home
+  games pulled live from the free, keyless [MLB StatsAPI]**
+  (`statsapi.mlb.com`) via `pnpm events:mlb`. Each row carries `source`,
+  `fetchedAt`, `verified: true`. 94 games this run.
+- **Curated** — hand-verified music/festival/comedy venues + coordinates with
+  real homepage URLs; dates are representative of the season and **labeled
+  "Curated"** in the UI with their source. Never dressed as live data.
+
+Events feed the planner: every event opens a **pre-game** sheet (cheapest pours
+within an easy walk) and a **Game Day** flag lights bars within 1 km of a
+ballpark hosting a home game today (⚾ pennant + row tag).
+
 ## The Awesome Layer
 
-1. **BEELINE MODE** — full-screen drunk-proof compass; a giant glowing arrow
-   (device orientation + geolocation bearing) points at the nearest live deal,
-   distance ticking down as you walk. North-relative fallback with no compass.
-2. **Radar sweep** — a neon arm + ping rings on load and re-locate, then calm.
-3. **Tonight's Play** — one-tap greedy 2–3 stop run for right now, shareable.
-4. **Damage calculator** — set a budget; every row shows what it buys.
-5. **Time scrubber** — drag 11 AM → 2 AM on any weekday; the map relights.
+1. **RIGHT NOW strip** — top-3 live picks (price, walk, ends-in, one-tap
+   directions) + a Plan card, rendered before any control. The header's live
+   count cycles the camera through live venues.
+2. **BEELINE MODE** — full-screen drunk-proof compass; a giant glowing arrow
+   (device orientation + geolocation bearing) points at the nearest live deal.
+3. **The Handshake Index** — Chicago's Dow Jones: the cheapest live Old Style +
+   Malört combo within the ring, shown proud atop the sheet.
+4. **Wheel of Poor Decisions** — neon slot reel (shake-to-spin) lands on an open
+   dive ≤20-min walk + a dare from the voice system.
+5. **Roast My Plan** — the planner's itinerary sent to Haiku (key-optional;
+   canned roasts without a key) for a two-sentence roast of *your choices*.
+6. **Tonight's Play** · **Damage calculator** · **Time scrubber** · **Radar
+   sweep** · cinematic **first-open onboarding** (3s, skippable, never again).
+
+## The voice (`lib/voice.ts`)
+
+Deterministic, **day-seeded** copy so the app reads consistently all Wednesday
+and changes its tune by Thursday (no `Math.random` — testable). Funny,
+Chicago-coded, punches at prices / Malört / your own choices — **never at
+people**, no slurs, nothing cruel; destructive flows stay straight-faced.
+Powers empty/error/loading states, lore drops, roasts, and dares. `VOICE_RULES`
+is embedded verbatim in the Roast My Plan prompt.
+
+## Share cards (`/share`)
+
+Meme-grade OG images (1200×630) in three templates — **Summon**
+("WE RIDE AT 5 · GILT BAR · $6 MARTINIS · DON'T BE LATE"), **Receipt**,
+**Challenge** — rendered from caller params via `next/og`. The planner's Share
+fires the native sheet with a Summon card URL that unfurls big in any group chat.
 
 ---
 

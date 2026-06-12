@@ -267,3 +267,78 @@ section logs the new work and judgment calls.
 - **Verified:** typecheck + lint clean, 22 tests green, production build passes,
   `/api/events` serves 25 events, and the live `/api/venues` payload sorts
   $4 (Richard's/Skylark/Carol's) → up.
+
+## v4 — "Best Drinking App in Chicago" overhaul
+
+The mandate flipped from feature-list to product: a 22-year-old opens this at
+4:50 PM Wednesday and knows in three seconds where to go.
+
+### The three-second screen (Phase B)
+- **Lead with the answer.** A `RIGHT NOW` strip (`RightNowStrip`) renders the
+  top-3 live picks — price, walk, ends-in, one-tap directions — plus a Plan
+  card, *before any control*. It reads the already-cheapest-first `ranked` set,
+  so it's the same engine truth as the list, just hoisted.
+- **Killed the vanity metric.** `liveStats`/`liveStatsLine` replace "1029 deals"
+  (a census venue count) with "N live now · M within a 10-min walk", ticking
+  with the clock. The live count is a button that cycles the camera through
+  live venues (reuses `select` → map flyTo + row scroll).
+- **Collapsed the control wall.** Search + a single Filters button (`FilterSheet`
+  holds chips + budget + events toggle) + a budget pill that cycles presets.
+  Search placeholder examples became tappable chips. Plus a Spin chip for the
+  Wheel.
+- **LIVE dominates the map.** Clusters now reduce a live *count* (not a boolean)
+  and render it big + red with a pulse; dead clusters drop to 45% opacity and
+  shrink. `FitRingOnce` frames the anchor + full 2-mile ring on load.
+- **Windowed list** via `useWindowed` (IntersectionObserver) keeps ~1,000 rows
+  cheap. Labeled top controls (Locate / anchor / Time travel) — no mystery meat.
+
+### Data quality (Phase C)
+- `scripts/qa.ts` (`pnpm qa`): price sanity bands, duplicate merge, schedule
+  nonsense, stale sweep; report by default, `--fix` writes. Seed is clean
+  (14 → 14, 0 flags) — reported honestly. `Deal.needsReview` excludes flagged
+  intel from the cheapest-drink key and the headline status; rendered with an
+  "unverified" tag. `/api/report` + `ReportIntel` queue a re-check via scrape_log.
+
+### Events provenance — Invariant 3 (Phase D)
+- The v1 events rail had real URLs but fabricated "representative" dates — that
+  was the violation. Fix: `CityEvent` gains `source`/`fetchedAt`/`verified`.
+  `scripts/events-mlb.ts` pulls real Cubs (112) + Sox (145) home games from the
+  **free, keyless MLB StatsAPI** → 94 verified rows. Curated music/festival rows
+  are honestly labeled "Curated" in the UI with their source. No fabricated
+  temporal data presented as fact. Curated Cubs/Sox stubs deleted (redundant).
+- **Handshake Index** (`handshake.ts`): cheapest live Old Style + Malört combo
+  within the ring, by literal label match, falling back to cheapest live
+  beer+shot labeled "proxy". Chicago's Dow Jones, shown proud at the top of the
+  sheet. **Game Day** (`gameday.ts`): bars within 1 km of a ballpark with a home
+  game today get a ⚾ pennant + row tag.
+
+### Troll energy (Phase E)
+- `lib/voice.ts`: deterministic, day-seeded copy (empty/error/loading/lore/
+  roasts/dares). Punches at prices, Malört, and the user's own choices — never
+  at people; destructive flows stay straight-faced. `Math.random` avoided so the
+  voice is testable and stable within a day.
+- **Roast My Plan** (`/api/roast`): key-optional. Haiku (temp 0.8, 80-token hard
+  cap, `VOICE_RULES` embedded) roasts the *plan*; no key → canned roast.
+- **Wheel of Poor Decisions** (rebrands the Malört-roulette idea): neon slot reel
+  spins open dives ≤20-min walk, shake-to-spin via devicemotion, day-seeded dare.
+
+### Liberty (Phase F)
+- **Onboarding**: one 3-second neon flicker-on + radar sweep on first open,
+  tap-to-skip, never again (localStorage), reduced-motion → instant utility.
+- **Meme share cards** (`/share` OG route): Summon / Receipt / Challenge
+  templates; planner Share fires the native sheet with a Summon card URL.
+
+### Scope cuts (logged honestly)
+- **CTA L-leg planner insert** (Phase D.4): not built this pass — kept the
+  planner keyless + deterministic rather than ship a half-wired transit
+  estimate. The nearest-station display + L-leg heuristic are the next slice.
+- **Badge collectible screen / Receipt auto-share** (Phase E.5): the share
+  template exists; wiring earned badges into it is deferred. No dead code left.
+- **Per-marker meme OG previews + full Lighthouse run**: headless visual tooling
+  (screenshots, Lighthouse) doesn't run in this build sandbox — verified instead
+  via green build, 31 tests, and a runtime smoke test of every route (all 200).
+
+**Final state:** zero-env build serves 1,029 venues + 116 events (94 verified);
+31 tests green; typecheck + lint clean; production build passes. The answer
+leads, counts are honest, LIVE dominates, events have provenance, and the app
+has a mouth on it.

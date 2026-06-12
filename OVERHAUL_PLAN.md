@@ -85,6 +85,52 @@ and logged, removed cleanly.
 
 ---
 
-## Before / after log (filled per phase)
+## Before / after log
 
-_(updated as phases land)_
+**Phase A — audit.** Contract written; top-10 UX problems ranked; events
+provenance gap identified as the Invariant-3 violation to fix.
+
+**Phase B — three-second screen.**
+- _Before:_ 7 stacked controls (wordmark → search → "1029 deals" → 8 chips →
+  budget → plan → events rail) before a single answer.
+- _After:_ a `RIGHT NOW` hero strip renders the top-3 live picks (price, walk,
+  ends-in, one-tap directions) + a Plan card before any control. Header shows
+  status-aware truth ("N live now · M within a 10-min walk"); the live count is
+  a tappable pill that cycles the camera through every live venue. The control
+  wall collapsed to one row (search + Filters sheet + budget pill); chips,
+  budget, and the events toggle moved behind the Filters sheet. Clusters now
+  show the LIVE count and glow red while dead clusters recede; default camera
+  fits the anchor + full 2-mile ring. Top controls labeled. List windowed
+  (IntersectionObserver) → ~1,000 rows stay light. Home route 69 kB / 187 kB
+  First Load.
+
+**Phase C — data quality.**
+- `pnpm qa` over the 14 seed deals: **before 14 → after 14**, 0 duplicate
+  merges, **0 flagged**, 0 stale. The hand-verified seed is clean — logged
+  honestly rather than manufacturing fake flags. `needsReview` plumbing +
+  "report bad intel" path are in place for when the AI pipeline scales the
+  corpus.
+
+**Phase D — Chicago soul.**
+- Events: **25 curated rows → 116 rows, 94 of them verified** Cubs/Sox home
+  games pulled live from the free keyless MLB StatsAPI (`source` + `fetchedAt`
+  + `verified`). Curated music/festival rows honestly tagged "Curated"; the 3
+  curated Cubs/Sox stubs were cut as now-redundant. Invariant 3 satisfied.
+- Handshake Index + Game Day (1 km ballpark flag + ⚾ pennant) live.
+
+**Phase E — troll energy.**
+- `lib/voice.ts` (deterministic, day-seeded) drives empty/error/loading + lore.
+- Roast My Plan (`/api/roast`, Haiku temp 0.8 / 80-token cap, canned fallback).
+- Wheel of Poor Decisions (neon slot reel + shake-to-spin + day-seeded dare).
+
+**Phase F — liberty.**
+- Cinematic first-open onboarding (3-second neon flicker + radar sweep,
+  skippable, never-again, reduced-motion aware).
+- `/share` meme-grade OG cards (Summon/Receipt/Challenge); planner Share fires
+  the native sheet with a Summon card URL.
+
+**Phase G — final.** 31 engine/planner/quality/soul tests green; typecheck +
+lint clean; production build passes; runtime smoke test — every route 200
+(`/`, `/plan`, `/admin`, `/api/venues` 1029, `/api/events` 116, `/share` PNG,
+`/api/roast`, `/api/report`). _Lighthouse + headless screenshots can't run in
+this build sandbox (as in v3); the quality floor is built in — see README._
