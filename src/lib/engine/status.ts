@@ -110,6 +110,7 @@ export function bestStatus(
 ): { deal: Deal; status: DealStatus } | null {
   let best: { deal: Deal; status: DealStatus } | null = null;
   for (const deal of deals) {
+    if (deal.needsReview) continue; // flagged intel never drives the headline
     const status = getDealStatus(deal, now);
     if (!best || RANK[status.state] > RANK[best.status.state]) {
       best = { deal, status };

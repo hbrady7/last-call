@@ -18,6 +18,7 @@ import { useStore } from "@/store/useStore";
 import { ScoreBadge } from "./ScoreBadge";
 import { CountdownChip } from "./CountdownChip";
 import { Heart } from "./Heart";
+import { ReportIntel } from "./ReportIntel";
 import { cn } from "@/lib/utils";
 
 function scheduleText(deal: Deal): string {
@@ -139,6 +140,11 @@ export function DealDetail({
               <Clock className="h-3.5 w-3.5" />
               {deal.kind === "all_day" ? "Always cheap" : "Happy hour"}
               <span className="font-normal text-brass">· {scheduleText(deal)}</span>
+              {deal.needsReview && (
+                <span className="rounded bg-brass/15 px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-brass">
+                  unverified
+                </span>
+              )}
             </div>
             <DayGrid days={deal.days.length ? deal.days : [0, 1, 2, 3, 4, 5, 6]} />
 
@@ -193,6 +199,15 @@ export function DealDetail({
                   month: "short",
                   day: "numeric",
                 })}`}
+          </div>
+        )}
+
+        {venue.deals.length > 0 && (
+          <div className="mb-6 flex items-center justify-between">
+            <span className="text-[11px] text-muted">
+              Prices wrong? Help the next person.
+            </span>
+            <ReportIntel venueId={venue.id} />
           </div>
         )}
       </div>

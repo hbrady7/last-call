@@ -74,6 +74,7 @@ export function scoreVenue(deals: Deal[]): number {
 export function cheapestDrinkPrice(deals: Deal[]): number | null {
   let min = Number.POSITIVE_INFINITY;
   for (const d of deals) {
+    if (d.needsReview) continue; // flagged intel never sets the headline price
     for (const i of d.items) {
       if (i.price != null && DRINK_CATEGORIES.includes(i.category)) {
         min = Math.min(min, i.price);

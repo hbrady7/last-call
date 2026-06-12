@@ -34,6 +34,9 @@ export const DealSchema = z.object({
   confidence: z.number().min(0).max(1),
   /** ISO timestamp. */
   lastVerified: z.string(),
+  /** Flagged by `pnpm qa` (price outlier / schedule nonsense) — excluded from
+   *  scoring + ranking until re-verified, rendered with an "unverified" tag. */
+  needsReview: z.boolean().optional(),
 });
 export type Deal = z.infer<typeof DealSchema>;
 
