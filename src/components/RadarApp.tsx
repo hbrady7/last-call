@@ -26,9 +26,12 @@ import { applyFilters } from "@/lib/engine/filter";
 import { parseQuery, applySearch } from "@/lib/engine/search";
 import { planTonight } from "@/lib/engine/play";
 import { liveStats, liveStatsLine } from "@/lib/engine/stats";
+import { handshakeIndex } from "@/lib/engine/handshake";
+import { gameDayVenueIds } from "@/lib/engine/gameday";
 import { voice } from "@/lib/voice";
 import { HQ } from "@/lib/hq";
 import { RightNowStrip } from "./RightNowStrip";
+import { HandshakeIndex } from "./HandshakeIndex";
 import { FilterSheet } from "./FilterSheet";
 import { DealRow } from "./DealRow";
 import { EventRail } from "./EventRail";
@@ -138,10 +141,18 @@ export function RadarApp() {
   const detailVenue = venues.find((v) => v.slug === detailSlug) ?? null;
 
   const rankedEvents = useMemo(() => rankEvents(events, now), [events, now]);
-  const railEvents = showEvents ? rankedEvents : [];
+  // Map + rail focus on what you can act on tonight — far-future games stay off.
+  const railEvents = showEvents
+    ? rankedEvents.filter((e) => e.timing.state !== "UPCOMING")
+    : [];
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
 
   const play = useMemo(() => planTonight(ranked, now), [ranked, now]);
+  const handshake = useMemo(() => handshakeIndex(ranked), [ranked]);
+  const gameDayIds = useMemo(
+    () => gameDayVenueIds(venues, events, now),
+    [venues, events, now]
+  );
 
   const { count: windowCount, sentinelRef } = useWindowed(visible.length);
 
@@ -212,6 +223,7 @@ export function RadarApp() {
         events={railEvents}
         selectedEventId={selectedEventId}
         onSelectEvent={selectEvent}
+        gameDayIds={gameDayIds}
       />
 
       <RadarSweep trigger={sweep} />
@@ -432,6 +444,8 @@ export function RadarApp() {
           </div>
         </div>
 
+        <HandshakeIndex handshake={handshake} onSelect={handleRowSelect} />
+
         {showEvents && railEvents.length > 0 && (
           <>
             <EventRail events={railEvents} onSelect={selectEvent} />
@@ -473,6 +487,7 @@ export function RadarApp() {
                 now={now}
                 selected={r.venue.slug === selectedSlug}
                 onSelect={handleRowSelect}
+                gameDay={gameDayIds.has(r.venue.id)}
               />
             </div>
           ))}

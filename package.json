@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "qa": "tsx scripts/qa.ts",
+    "events:mlb": "tsx scripts/events-mlb.ts",
     "census": "tsx scripts/census.ts",
     "scrape": "tsx scripts/scrape.ts",
     "scout": "tsx scripts/scout.ts",

@@ -244,6 +244,18 @@ body {
   border-style: dashed;
   border-color: var(--color-brass);
 }
+/* game-day pennant — bars within 1 km of a ballpark with a home game today */
+.lc-pin {
+  position: relative;
+}
+.lc-pennant {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 11px;
+  line-height: 1;
+  filter: drop-shadow(0 0 3px rgba(255, 181, 46, 0.6));
+}
 
 /* ───────────────────────── event markers (cyan marquee) ───────────────────── */
 .lc-event {

@@ -111,6 +111,13 @@ export const CityEventSchema = z.object({
   url: z.string().nullable(),
   blurb: z.string(),
   tags: z.array(z.string()),
+  /* ─── provenance (Invariant 3, extended to events) ───
+     `verified` = pulled live from a real source (e.g. MLB StatsAPI). Anything
+     else is honestly labeled "Curated" in the UI — never dressed as live. */
+  source: z.string().nullable().optional(),
+  /** ISO timestamp the row was fetched/curated. */
+  fetchedAt: z.string().nullable().optional(),
+  verified: z.boolean().optional(),
 });
 export type CityEvent = z.infer<typeof CityEventSchema>;
 

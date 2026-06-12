@@ -88,6 +88,17 @@ export function EventDetail({
             {event.recurring && (
               <span className="text-muted">{event.recurring}</span>
             )}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                event.verified
+                  ? "bg-event/15 text-event"
+                  : "bg-brass/15 text-brass"
+              )}
+              title={event.source ?? undefined}
+            >
+              {event.verified ? "Verified" : "Curated"}
+            </span>
           </div>
         </div>
         <button
@@ -172,6 +183,17 @@ export function EventDetail({
           >
             <ExternalLink className="h-3.5 w-3.5" /> Event details &amp; tickets
           </a>
+        )}
+
+        {event.source && (
+          <p className="mt-4 text-[10px] text-muted">
+            {event.verified ? "Source" : "Curated from"}: {event.source}
+            {event.fetchedAt &&
+              ` · ${new Date(event.fetchedAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              })}`}
+          </p>
         )}
       </div>
 

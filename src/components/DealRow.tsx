@@ -49,11 +49,13 @@ export function DealRow({
   now,
   selected,
   onSelect,
+  gameDay = false,
 }: {
   ranked: RankedVenue;
   now: Date;
   selected: boolean;
   onSelect: (slug: string) => void;
+  gameDay?: boolean;
 }) {
   const { venue, status, score, cheapestDrink, meters, headline, stale } = ranked;
   const budget = useStore((s) => s.budget);
@@ -97,6 +99,11 @@ export function DealRow({
           {venue.cashOnly && (
             <span className="shrink-0 rounded bg-brass/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brass">
               Cash
+            </span>
+          )}
+          {gameDay && (
+            <span className="shrink-0 rounded bg-live-red/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-live-red">
+              ⚾ Game day
             </span>
           )}
         </div>

@@ -35,7 +35,7 @@ function eventIcon(r: RankedEvent, selected: boolean): L.DivIcon {
  * UNSCOUTED a faint ember, NO_DEAL_FOUND a dim ring. The city lights up over
  * time as the pipeline works.
  */
-function venueIcon(r: RankedVenue, selected: boolean): L.DivIcon {
+function venueIcon(r: RankedVenue, selected: boolean, gameDay: boolean): L.DivIcon {
   const lc = r.venue.lifecycle;
   let cls = "lc-pin lc-pin--ember";
   let label = "";
@@ -53,9 +53,10 @@ function venueIcon(r: RankedVenue, selected: boolean): L.DivIcon {
     cls = "lc-pin lc-pin--nodeal";
   }
   const wtt = r.venue.tags.includes("worth-the-trip") ? " lc-pin--wtt" : "";
+  const pennant = gameDay ? `<i class="lc-pennant">⚾</i>` : "";
   return L.divIcon({
     className: "",
-    html: `<div class="${cls}${wtt}${selected ? " lc-pin--selected" : ""}">${label}</div>`,
+    html: `<div class="${cls}${wtt}${selected ? " lc-pin--selected" : ""}">${label}${pennant}</div>`,
     iconSize: [34, 34],
     iconAnchor: [17, 17],
   });
@@ -147,10 +148,12 @@ function ClusterLayer({
   ranked,
   selectedSlug,
   onSelect,
+  gameDayIds,
 }: {
   ranked: RankedVenue[];
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
+  gameDayIds: Set<string>;
 }) {
   const map = useMap();
   const [, setVersion] = useState(0);
@@ -233,7 +236,7 @@ function ClusterLayer({
           <Marker
             key={r.venue.id}
             position={[lat, lng]}
-            icon={venueIcon(r, slug === selectedSlug)}
+            icon={venueIcon(r, slug === selectedSlug, gameDayIds.has(r.venue.id))}
             eventHandlers={{ click: () => onSelect(slug) }}
           />
         );
@@ -251,6 +254,7 @@ export default function MapView({
   events = [],
   selectedEventId = null,
   onSelectEvent,
+  gameDayIds,
 }: {
   ranked: RankedVenue[];
   selectedSlug: string | null;
@@ -260,6 +264,7 @@ export default function MapView({
   events?: RankedEvent[];
   selectedEventId?: string | null;
   onSelectEvent?: (id: string) => void;
+  gameDayIds?: Set<string>;
 }) {
   const focus = useMemo(() => {
     const sel = ranked.find((r) => r.venue.slug === selectedSlug);
@@ -306,6 +311,7 @@ export default function MapView({
           ranked={ranked}
           selectedSlug={selectedSlug}
           onSelect={onSelect}
+          gameDayIds={gameDayIds ?? new Set()}
         />
         {/* Chicago events layer — cyan marquee pins above the amber deals */}
         {events.map((r) => (
